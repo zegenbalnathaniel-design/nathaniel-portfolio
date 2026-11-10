@@ -14,7 +14,6 @@ export function initInteractives({ onYear, onRate, reduced }: Hooks) {
   rateLab(onRate);
   fiscal();
   tax();
-  board();
   videos();
   brief();
   if (!reduced) tilt();
@@ -165,18 +164,6 @@ function tax() {
   run();
 }
 
-// ---------------------------------------------------------------- vision board drag-scroll
-function board() {
-  const el = document.querySelector<HTMLElement>(".board-scroll");
-  if (!el) return;
-  let down = false, x0 = 0, s0 = 0;
-  el.addEventListener("pointerdown", (e) => { if (e.pointerType !== "mouse") return; down = true; x0 = e.clientX; s0 = el.scrollLeft; el.classList.add("dragging"); el.setPointerCapture(e.pointerId); });
-  el.addEventListener("pointermove", (e) => { if (down) el.scrollLeft = s0 - (e.clientX - x0); });
-  const up = () => { down = false; el.classList.remove("dragging"); };
-  el.addEventListener("pointerup", up);
-  el.addEventListener("pointercancel", up);
-}
-
 // ---------------------------------------------------------------- videos play only while seen
 function videos() {
   const vids = Array.from(document.querySelectorAll<HTMLVideoElement>("video[data-autoplay]"));
@@ -189,21 +176,47 @@ function videos() {
 }
 
 // ---------------------------------------------------------------- 90-second brief
+// A one-page dossier. A hairline timer runs down the ninety seconds while it
+// is open; "Print / save PDF" prints only the brief.
 let openBriefFn = () => {};
 export const openBrief = () => openBriefFn();
 function brief() {
   const ov = $("brief");
+  const bar = $("briefTimer");
+  const secs = $("briefClock");
   let lastFocus: Element | null = null;
-  const close = () => { ov.hidden = true; (lastFocus as HTMLElement | null)?.focus?.(); };
-  openBriefFn = () => { lastFocus = document.activeElement; ov.hidden = false; ov.querySelector<HTMLElement>(".brief-x")?.focus(); };
+  let raf = 0, t0 = 0;
+  const tick = () => {
+    const p = Math.min(1, (performance.now() - t0) / 90000);
+    bar.style.transform = `scaleX(${p})`;
+    secs.textContent = String(Math.max(0, Math.ceil(90 - p * 90)));
+    if (p < 1 && !ov.hidden) raf = requestAnimationFrame(tick);
+  };
+  const close = () => {
+    ov.hidden = true;
+    cancelAnimationFrame(raf);
+    document.documentElement.classList.remove("is-modal");
+    (lastFocus as HTMLElement | null)?.focus?.();
+  };
+  openBriefFn = () => {
+    lastFocus = document.activeElement;
+    ov.hidden = false;
+    document.documentElement.classList.add("is-modal");
+    ov.querySelector<HTMLElement>(".brief-card")?.scrollTo({ top: 0 });
+    ov.querySelector<HTMLElement>(".brief-x")?.focus();
+    t0 = performance.now();
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(tick);
+  };
   $("briefBtn").addEventListener("click", openBriefFn);
+  $("briefPrint").addEventListener("click", () => print());
   ov.querySelectorAll("[data-close]").forEach((el) => el.addEventListener("click", close));
   ov.querySelectorAll("[data-go]").forEach((el) => el.addEventListener("click", close));
   addEventListener("keydown", (e) => {
     if (ov.hidden) return;
     if (e.key === "Escape") close();
     if (e.key === "Tab") {
-      const f = Array.from(ov.querySelectorAll<HTMLElement>("button"));
+      const f = Array.from(ov.querySelectorAll<HTMLElement>("button, a[href]"));
       const i = f.indexOf(document.activeElement as HTMLElement);
       if (e.shiftKey && i <= 0) { f[f.length - 1].focus(); e.preventDefault(); }
       else if (!e.shiftKey && i === f.length - 1) { f[0].focus(); e.preventDefault(); }

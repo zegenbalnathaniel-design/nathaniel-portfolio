@@ -28,6 +28,7 @@ import {
 
 export const LAYER_MESH = 1;
 export const LAYER_LINE = 2;
+export const LAYER_SHADOW = 3;
 
 const idCache = new Map<number, ShaderMaterial>();
 
@@ -92,6 +93,11 @@ export class LinePipeline {
         // The text column: lines behind it are ghosted so the copy stays readable.
         // x: right edge of the column (0..1), y: how far the fade runs, z: alpha kept behind text.
         uCol: { value: new Vector3(0.58, 0.12, 0.2) },
+        // Clay: faces turned toward a soft key light read a touch lighter,
+        // faces turned away a touch darker — measured against the ground, so
+        // the paper stays the paper. uGN is the ground's normal in view space.
+        uGN: { value: new Vector3(0, 1, 0) },
+        uClay: { value: 0.16 },
       },
       vertexShader: /* glsl */ `
         varying vec2 vUv;
@@ -106,6 +112,8 @@ export class LinePipeline {
         uniform vec3 uBg, uInk, uAccent;
         uniform vec2 uFog;
         uniform vec3 uCol;
+        uniform vec3 uGN;
+        uniform float uClay;
 
         float D(vec2 uv) { return texture2D(tD, uv).r; }
         vec4 N(vec2 uv) { return texture2D(tN, uv); }
@@ -150,6 +158,13 @@ export class LinePipeline {
           float glow = 1.0 - smoothstep(0.0, 0.9, length(q * vec2(1.0, 1.25)));
           vec3 paper = uBg * (1.0 + mix(0.035, 0.09, uNight) * glow - mix(0.025, 0.0, uNight) * (1.0 - glow));
 
+          // Clay shading of the solids (ground and background stay flat paper).
+          if (c0.a > 0.5 / 255.0) {
+            vec3 n0 = normalize(c0.xyz * 2.0 - 1.0);
+            vec3 L = normalize(vec3(-0.42, 0.78, 0.46));
+            float k = (dot(n0, L) - dot(uGN, L)) * uClay;
+            paper *= 1.0 + k * fog;
+          }
           gl_FragColor = vec4(mix(paper, ink, clamp(a, 0.0, 1.0)), 1.0);
           gl_FragDepth = d0;
         }`,

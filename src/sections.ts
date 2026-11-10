@@ -1,6 +1,5 @@
 // The page's sections, read once from the DOM, and the functions the command
-// bar understands. A function either names a section (its data-code) or an
-// element inside one.
+// palette understands. A function either names a section or an element inside one.
 
 export type Section = {
   el: HTMLElement;
@@ -24,12 +23,13 @@ export const sections: Section[] = Array.from(document.querySelectorAll<HTMLElem
   index,
 }));
 
-// Clock time each section is "set" at, in minutes after midnight: the page is one day.
+// The page is one day; each section is "set" at a time, in minutes after midnight.
 export const sectionClock: Record<string, number> = {
   cover: 7 * 60,
   habit: 8 * 60 + 10,
   ownership: 9 * 60 + 30,
-  transmission: 11 * 60 + 40,
+  transmission: 11 * 60,
+  lab: 12 * 60 + 10,
   ventures: 13 * 60 + 30,
   newsletter: 15 * 60,
   failures: 16 * 60 + 40,
@@ -38,8 +38,27 @@ export const sectionClock: Record<string, number> = {
   library: 19 * 60 + 50,
   record: 20 * 60 + 40,
   map: 21 * 60 + 30,
-  next: 22 * 60 + 40,
+  next: 22 * 60 + 30,
+  service: 23 * 60 + 10,
   contact: 23 * 60 + 50,
+};
+
+/** Which nav item a section belongs to. */
+export const navGroup: Record<string, string> = {
+  ownership: "research",
+  transmission: "research",
+  lab: "lab",
+  ventures: "ventures",
+  newsletter: "writing",
+  failures: "ventures",
+  athletics: "life",
+  creative: "life",
+  library: "life",
+  record: "life",
+  map: "life",
+  next: "life",
+  service: "service",
+  contact: "contact",
 };
 
 export const fmtClock = (m: number) => {
@@ -49,16 +68,17 @@ export const fmtClock = (m: number) => {
 
 export const functions: Fn[] = [
   { code: "TOP", label: "Cover", group: "Navigate", target: "#cover" },
-  { code: "HABIT", label: "The habit — the vision board", group: "Navigate", target: "#habit" },
+  { code: "HABIT", label: "The habit — the vision board spreadsheet", group: "Navigate", target: "#habit" },
+  { code: "RSRCH", label: "All research", group: "Research", target: "#ownership" },
   { code: "OWN", label: "Fig. 01 — Capability-to-Ownership", group: "Research", target: "#ownership" },
   { code: "BFPI", label: "The Rate Lab — Fed → JPMorgan", group: "Research", target: "#transmission" },
-  { code: "FISC", label: "Singapore fiscal multiplier", group: "Research", target: "#transmission", },
-  { code: "TAX", label: "UK gambling levy", group: "Research", target: "#transmission" },
-  { code: "RSRCH", label: "All research", group: "Research", target: "#ownership" },
+  { code: "FISC", label: "Singapore fiscal multiplier (EE)", group: "Research", target: "#transmission" },
+  { code: "TAX", label: "UK gambling levy (IA)", group: "Research", target: "#transmission" },
+  { code: "LAB", label: "The Lab — India Economic Intelligence Lab", group: "Research", target: "#lab" },
+  { code: "IEIL", label: "India Economic Intelligence Lab", group: "Research", target: "#lab" },
   { code: "VNTR", label: "Ventures & writing", group: "Work", target: "#ventures" },
-  { code: "EDGT", label: "Edugate", group: "Work", target: "#w-edugate" },
-  { code: "BTC", label: "Bitcoin Desk Simulator", group: "Work", target: "#w-btc" },
-  { code: "IEIL", label: "India Economic Intelligence Lab", group: "Work", target: "#w-ieil" },
+  { code: "EDGT", label: "Edugate — HSSL top 10 of 10,000", group: "Work", target: "#w-edugate" },
+  { code: "BTC", label: "Bitcoin Desk Simulator · Bitcoin Bharat", group: "Work", target: "#w-btc" },
   { code: "SUBS", label: "Essays on Substack", group: "Work", target: "#w-substack" },
   { code: "TFF", label: "The Financial Frontier — Issue 01", group: "Work", target: "#newsletter" },
   { code: "FAIL", label: "What didn’t work", group: "Person", target: "#failures" },
@@ -66,9 +86,10 @@ export const functions: Fn[] = [
   { code: "CRTV", label: "The creative side", group: "Person", target: "#creative" },
   { code: "LIB", label: "The library", group: "Person", target: "#library" },
   { code: "REC", label: "The record", group: "Person", target: "#record" },
-  { code: "MAP", label: "The map", group: "Person", target: "#map" },
+  { code: "MAP", label: "The map — a clickable globe", group: "Person", target: "#map" },
   { code: "NEXT", label: "What I’m chasing next", group: "Person", target: "#next" },
-  { code: "CONT", label: "Contact", group: "Person", target: "#contact" },
+  { code: "SERV", label: "Service — Christmas-in-a-Box, Asha Nivas, teaching", group: "Person", target: "#service" },
+  { code: "CONT", label: "Contact — email and QR codes", group: "Person", target: "#contact" },
   { code: "BRIEF", label: "90-second brief, for admissions", group: "Tools", action: "brief" },
   { code: "HELP", label: "List every function", group: "Tools", action: "help" },
 ];

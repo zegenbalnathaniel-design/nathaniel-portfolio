@@ -4,8 +4,11 @@
 // (grids, lanes, coastlines, sketch marks) is added on the LINE layer.
 
 import {
+  Box3,
   BoxGeometry,
   BufferGeometry,
+  CanvasTexture,
+  MeshBasicMaterial,
   CatmullRomCurve3,
   CylinderGeometry,
   ExtrudeGeometry,
@@ -24,7 +27,7 @@ import {
   Vector3,
   type BufferGeometry as BG,
 } from "three";
-import { LAYER_LINE, LAYER_MESH, idMaterial } from "./pipeline";
+import { LAYER_LINE, LAYER_MESH, LAYER_SHADOW, idMaterial } from "./pipeline";
 import { LAND } from "../data/land";
 
 export const M = {
@@ -50,6 +53,10 @@ export type Spinner = {
   vel: number;
   idle: number; // radians per second when nobody is holding it
   axis: "y" | "globe";
+  goal?: number; // an angle to settle at (the globe turning to a chosen place)
+  bx: number; // squash-and-stretch spring: displacement and velocity
+  bv: number;
+  name?: string;
 };
 
 export type Station = {
@@ -59,6 +66,9 @@ export type Station = {
   spinners: Spinner[];
   restLit?: number; // the object lit at rest, if any
   tick?: (t: number, dt: number, near: boolean) => boolean; // returns true while animating
+  hero: Group | null; // everything but the plinth, so a click can make it bounce
+  bx: number;
+  bv: number;
 };
 
 let nextId = 2;
@@ -121,11 +131,70 @@ function boxEdgesDashed(p: Object3D, w: number, h: number, d: number, x: number,
   for (const xx of X) for (const zz of Z) e([xx, Y[0], zz], [xx, Y[1], zz]);
   return segs(p, pts, M.dash, true);
 }
+// ---- soft contact shadows: one blurred blob per footprint
+const shadowTex = (() => {
+  const c = document.createElement("canvas");
+  c.width = c.height = 128;
+  const g = c.getContext("2d")!;
+  const r = g.createRadialGradient(64, 64, 6, 64, 64, 64);
+  r.addColorStop(0, "rgba(255,255,255,1)");
+  r.addColorStop(0.45, "rgba(255,255,255,.55)");
+  r.addColorStop(1, "rgba(255,255,255,0)");
+  g.fillStyle = r;
+  g.fillRect(0, 0, 128, 128);
+  return new CanvasTexture(c);
+})();
+export const SH = {
+  ground: new MeshBasicMaterial({ map: shadowTex, transparent: true, opacity: 0.16, depthWrite: false }),
+  object: new MeshBasicMaterial({ map: shadowTex, transparent: true, opacity: 0.26, depthWrite: false }),
+};
+function blob(p: Object3D, x: number, z: number, w: number, d: number, y: number, mat: MeshBasicMaterial) {
+  const g = new PlaneGeometry(w, d);
+  g.rotateX(-Math.PI / 2);
+  const m = new Mesh(g, mat);
+  m.position.set(x, y, z);
+  m.layers.set(LAYER_SHADOW);
+  m.renderOrder = -1;
+  p.add(m);
+  return m;
+}
+/** Shadows under a station's plinth and under what stands on it, then gathers
+ *  everything but the plinth into a "hero" group that a click can bounce. */
+function finish(st: Station, opts: { objects?: boolean } = {}) {
+  const g = st.group;
+  g.updateWorldMatrix(true, true);
+  const base = new Box3(), objs = new Box3(), tmp = new Box3();
+  const plinthMeshes: Object3D[] = [];
+  g.children.forEach((c) => {
+    if (c instanceof Mesh && c.material === idMaterial(1)) { plinthMeshes.push(c); base.union(tmp.setFromObject(c)); }
+  });
+  g.traverse((o) => {
+    if (o instanceof Mesh && o.material !== idMaterial(1) && o.layers.isEnabled(LAYER_MESH)) objs.union(tmp.setFromObject(o));
+  });
+  const off = (v: Vector3) => v.sub(g.position);
+  // a little toward the back: the key light comes from the front-left
+  if (!base.isEmpty()) {
+    const mn = off(base.min.clone()), mx = off(base.max.clone());
+    blob(g, (mn.x + mx.x) / 2, (mn.z + mx.z) / 2 - 0.35, mx.x - mn.x + 2.2, mx.z - mn.z + 2.2, 0.012, SH.ground);
+    if (opts.objects !== false && !objs.isEmpty()) {
+      const a = off(objs.min.clone()), b = off(objs.max.clone());
+      blob(g, (a.x + b.x) / 2, (a.z + b.z) / 2 - 0.2, (b.x - a.x) * 1.25 + 0.6, (b.z - a.z) * 1.25 + 0.6, mx.y + 0.014, SH.object);
+    }
+  }
+  const hero = new Group();
+  g.children.slice().forEach((c) => {
+    if (plinthMeshes.includes(c) || c.layers.isEnabled(LAYER_SHADOW)) return;
+    hero.add(c);
+  });
+  g.add(hero);
+  st.hero = hero;
+}
+
 function station(key: string, x: number, z: number, cam: Omit<CamKey, "target"> & { dx?: number; dy?: number; dz?: number }): Station {
   const group = new Group();
   x *= SX; z *= SZ;
   group.position.set(x, 0, z);
-  return { key, group, spinners: [], cam: { target: new Vector3(x + (cam.dx ?? 0), cam.dy ?? 1.2, z + (cam.dz ?? 0)), h: cam.h, az: cam.az, el: cam.el, sx: cam.sx, sy: cam.sy } };
+  return { key, group, spinners: [], hero: null, bx: 0, bv: 0, cam: { target: new Vector3(x + (cam.dx ?? 0), cam.dy ?? 1.2, z + (cam.dz ?? 0)), h: cam.h, az: cam.az, el: cam.el, sx: cam.sx, sy: cam.sy } };
 }
 
 // ---------------------------------------------------------------- data
@@ -136,17 +205,31 @@ export const SERIES = {
   wea: [0.6, 0.612, 0.625, 0.638, 0.645, 0.64, 0.658, 0.675, 0.69, 0.71, 0.73],
 };
 
-export const PLACES: [string, number, number, number][] = [
-  ["Dubai", 25.2, 55.3, 1], ["Abu Dhabi", 24.45, 54.38, 0], ["Singapore", 1.35, 103.82, 1], ["Jakarta", -6.2, 106.8, 1],
-  ["Bangalore", 12.97, 77.59, 0], ["Chennai", 13.08, 80.27, 1], ["Mumbai", 19.08, 72.88, 1], ["Madurai", 9.93, 78.12, 0],
-  ["Kodaikanal", 10.24, 77.49, 0], ["Dindigul", 10.36, 77.98, 0], ["Vattakanal", 10.21, 77.5, 0], ["Coorg", 12.34, 75.8, 0],
-  ["Salem", 11.66, 78.15, 0], ["Pondicherry", 11.94, 79.83, 0], ["Karur", 10.96, 78.08, 0], ["Delhi", 28.61, 77.21, 1],
-  ["Gurgaon", 28.46, 77.03, 0], ["Faridabad", 28.41, 77.31, 0], ["Pune", 18.52, 73.86, 0], ["Kochi", 9.93, 76.27, 0],
-  ["Thiruvalla", 9.38, 76.57, 0], ["Alappuzha", 9.49, 76.33, 0], ["Goa", 15.3, 74.12, 0], ["Mangalore", 12.91, 74.86, 0],
-  ["Poondi", 13.18, 79.86, 0], ["Vellore", 12.92, 79.13, 0], ["Trichy", 10.79, 78.7, 0], ["Coimbatore", 11.02, 76.96, 0],
-  ["Palakkad", 10.78, 76.65, 0], ["Lonavala", 18.75, 73.41, 0], ["Lavasa", 18.41, 73.51, 0], ["Mahabaleshwar", 17.92, 73.66, 0],
-  ["Kolhapur", 16.7, 74.24, 0], ["Kodaikanal Lake", 10.23, 77.48, 0],
+export type Place = { name: string; lat: number; lon: number; anchor: boolean; region: string };
+const P = (name: string, lat: number, lon: number, anchor: 0 | 1, region: string): Place => ({ name, lat, lon, anchor: !!anchor, region });
+export const PLACES: Place[] = [
+  P("Dubai", 25.2, 55.3, 1, "Gulf"), P("Abu Dhabi", 24.45, 54.38, 0, "Gulf"),
+  P("Singapore", 1.35, 103.82, 1, "Southeast Asia"), P("Jakarta", -6.2, 106.8, 1, "Southeast Asia"),
+  P("Chennai", 13.08, 80.27, 1, "South India"), P("Madurai", 9.93, 78.12, 0, "South India"), P("Kodaikanal", 10.24, 77.49, 0, "South India"),
+  P("Kodaikanal Lake", 10.23, 77.48, 0, "South India"), P("Vattakanal", 10.21, 77.5, 0, "South India"), P("Dindigul", 10.36, 77.98, 0, "South India"),
+  P("Salem", 11.66, 78.15, 0, "South India"), P("Karur", 10.96, 78.08, 0, "South India"), P("Trichy", 10.79, 78.7, 0, "South India"),
+  P("Vellore", 12.92, 79.13, 0, "South India"), P("Poondi", 13.18, 79.86, 0, "South India"), P("Coimbatore", 11.02, 76.96, 0, "South India"),
+  P("Pondicherry", 11.94, 79.83, 0, "South India"), P("Bangalore", 12.97, 77.59, 0, "South India"), P("Coorg", 12.34, 75.8, 0, "South India"),
+  P("Mangalore", 12.91, 74.86, 0, "South India"), P("Kochi", 9.93, 76.27, 0, "South India"), P("Thiruvalla", 9.38, 76.57, 0, "South India"),
+  P("Alappuzha", 9.49, 76.33, 0, "South India"), P("Palakkad", 10.78, 76.65, 0, "South India"),
+  P("Mumbai", 19.08, 72.88, 1, "West & North India"), P("Pune", 18.52, 73.86, 0, "West & North India"), P("Lonavala", 18.75, 73.41, 0, "West & North India"),
+  P("Lavasa", 18.41, 73.51, 0, "West & North India"), P("Mahabaleshwar", 17.92, 73.66, 0, "West & North India"), P("Kolhapur", 16.7, 74.24, 0, "West & North India"),
+  P("Goa", 15.3, 74.12, 0, "West & North India"), P("Delhi", 28.61, 77.21, 1, "West & North India"), P("Gurgaon", 28.46, 77.03, 0, "West & North India"),
+  P("Faridabad", 28.41, 77.31, 0, "West & North India"),
 ];
+/** A line for the places that mean something particular. */
+export const PLACE_NOTES: Record<string, string> = {
+  Chennai: "Home base — Alphabet International School, CSK Academy, Christmas-in-a-Box.",
+  Kodaikanal: "School before Chennai — Kodaikanal International School.",
+  "Kodaikanal Lake": "School before Chennai — Kodaikanal International School.",
+  Pune: "Under-12 district cricket.",
+  Singapore: "The economy in my Extended Essay — its Resilience & Solidarity Budgets.",
+};
 
 // ---------------------------------------------------------------- stations
 export type WorldParts = {
@@ -155,13 +238,13 @@ export type WorldParts = {
   route: { full: Line; drawn: Line; count: number };
   setYear: (i: number) => void;
   setRate: (r: number) => void;
-  globe: { sphere: Object3D; spin: Spinner; radius: number; labels: { name: string; local: Vector3 }[] };
+  globe: { sphere: Object3D; spin: Spinner; radius: number; labels: { name: string; local: Vector3 }[]; pins: { place: Place; local: Vector3 }[]; ring: Line };
   overview: { day: CamKey; night: CamKey };
 };
 
 export function buildWorld(onStep: (p: number) => void): WorldParts {
   const stations: Station[] = [];
-  const total = 13;
+  const total = 15;
   let built = 0;
   const step = () => onStep(++built / total);
 
@@ -196,6 +279,7 @@ export function buildWorld(onStep: (p: number) => void): WorldParts {
       });
     });
   }
+  finish(habit);
   stations.push(habit); step();
 
   // ---- 02 OWNERSHIP: three walls tracing Fig. 01; the gap between income and wealth in copper
@@ -234,6 +318,7 @@ export function buildWorld(onStep: (p: number) => void): WorldParts {
       return true;
     };
   }
+  finish(ridges);
   stations.push(ridges); step();
 
   // ---- 03 TRANSMISSION: a bank, and a pillar for the rate that it answers
@@ -283,7 +368,30 @@ export function buildWorld(onStep: (p: number) => void): WorldParts {
       return true;
     };
   }
+  finish(bank);
   stations.push(bank); step();
+
+  // ---- 04 THE LAB: six labs around one evidence ledger, linked like the Hub figure
+  const lab = station("lab", 56, -22, { h: 15, az: 50, el: 30 });
+  {
+    const g = lab.group;
+    plinth(g, 11, 8, 0.3);
+    const ledgerId = newId();
+    cyl(g, ledgerId, 1.0, 0.5, 0, 0.3, 0, 48);
+    cyl(g, ledgerId, 0.62, 0.22, 0, 0.8, 0, 48);
+    const spots: [number, number, number][] = [[-3.4, -2.2, 1.3], [0, -2.7, 1.0], [3.4, -2.2, 2.3], [-3.4, 2.2, 1.6], [0, 2.7, 0.9], [3.4, 2.2, 1.2]];
+    const links: number[] = [];
+    spots.forEach(([x, z, h], i) => {
+      const id = i === 2 ? newId() : newId();
+      box(g, id, 1.5, h, 1.5, x, 0.3, z);
+      box(g, id, 1.7, 0.1, 1.7, x, 0.3 + h, z);
+      if (i === 2) lab.restLit = id; // the banking lab: the iBFPI
+      links.push(0, 0.36, 0, x, 0.36, z);
+    });
+    segs(g, links, M.dash, true);
+  }
+  finish(lab);
+  stations.push(lab); step();
 
   // ---- 04 VENTURES: five plinths, five objects you can spin
   const plinths = station("plinths", 68, -12, { h: 24, az: 46, el: 28, dx: 0.5, sx: -0.29 });
@@ -292,7 +400,10 @@ export function buildWorld(onStep: (p: number) => void): WorldParts {
     const spot = (i: number) => -8.4 + i * 4.2;
     const base = (i: number) => box(g, 1, 2.8, 0.7, 2.8, spot(i), 0, 0);
     const holder = (i: number) => { const o = new Group(); o.position.set(spot(i), 0.7, 0); g.add(o); return o; };
-    const spin = (o: Object3D, id: number, idle = 0) => plinths.spinners.push({ obj: o, id, angle: 0, vel: 0, idle, axis: "y" });
+    const spin = (o: Object3D, id: number, idle = 0, name = "") => {
+      plinths.spinners.push({ obj: o, id, angle: 0, vel: 0, idle, axis: "y", bx: 0, bv: 0, name });
+      blob(g, o.position.x, o.position.z - 0.15, 2.3, 2.3, 0.714, SH.object);
+    };
 
     // Edugate: a gate
     base(0); { const o = holder(0), id = newId();
@@ -300,26 +411,26 @@ export function buildWorld(onStep: (p: number) => void): WorldParts {
       box(o, id, 0.34, 2.0, 0.42, -0.78, 0.16, 0); box(o, id, 0.34, 2.0, 0.42, 0.78, 0.16, 0);
       const arch = new TorusGeometry(0.78, 0.17, 10, 28, Math.PI); arch.translate(0, 2.16, 0); mesh(arch, id, o);
       box(o, id, 0.5, 0.16, 0.5, 0, 2.86, 0);
-      spin(o, id); }
+      spin(o, id, 0, "Edugate"); }
     // The Financial Frontier: a stack of issues
     base(1); { const o = holder(1), id = newId();
       for (let i = 0; i < 8; i++) { const s = box(o, id, 1.75, 0.07, 1.3, 0, i * 0.075, 0); s.rotation.y = Math.sin(i * 2.3) * 0.09; }
       const fold = new Group(); fold.position.set(0, 0.62, 0); o.add(fold);
       const a = box(fold, id, 1.6, 0.05, 0.62, 0, 0, -0.31); a.rotation.x = -0.32;
       const b = box(fold, id, 1.6, 0.05, 0.62, 0, 0, 0.31); b.rotation.x = 0.32;
-      spin(o, id); }
+      spin(o, id, 0, "The Financial Frontier"); }
     // Bitcoin: a coin on its edge, turning slowly
     base(2); { const o = holder(2), id = newId();
       const coin = new CylinderGeometry(1.0, 1.0, 0.22, 56); coin.rotateX(Math.PI / 2); coin.translate(0, 1.02, 0); mesh(coin, id, o);
       const face = new CylinderGeometry(0.74, 0.74, 0.27, 56); face.rotateX(Math.PI / 2); face.translate(0, 1.02, 0); mesh(face, id, o);
       const bar = new BoxGeometry(0.16, 0.9, 0.3); bar.translate(-0.12, 1.02, 0); mesh(bar, id, o);
       box(o, id, 1.0, 0.06, 0.5, 0, 0, 0);
-      spin(o, id, 0.45); }
+      spin(o, id, 0.45, "Bitcoin Desk Simulator"); }
     // India Economic Intelligence Lab: a chart of six labs
     base(3); { const o = holder(3), id = newId();
       box(o, id, 2.2, 0.12, 1.3, 0, 0, 0);
       [0.5, 0.95, 0.72, 1.35, 1.08, 1.7].forEach((h, i) => box(o, id, 0.26, h, 0.26, -0.85 + i * 0.34, 0.12, ((i % 2) - 0.5) * 0.36));
-      spin(o, id); }
+      spin(o, id, 0, "India Economic Intelligence Lab"); }
     // Substack: a mailbox, flag up
     base(4); { const o = holder(4), id = newId();
       box(o, id, 0.16, 1.15, 0.16, 0, 0, 0);
@@ -328,8 +439,9 @@ export function buildWorld(onStep: (p: number) => void): WorldParts {
       top.rotateX(Math.PI / 2); top.translate(0, 1.57, 0); mesh(top, id, o);
       box(o, id, 0.04, 0.62, 0.12, 0.42, 1.25, 0.32);
       box(o, id, 0.04, 0.16, 0.34, 0.42, 1.73, 0.43);
-      spin(o, id); }
+      spin(o, id, 0, "Essays on Substack"); }
   }
+  finish(plinths, { objects: false });
   stations.push(plinths); step();
 
   // ---- 05 NEWSLETTER: the issue, larger, folded open on its stack
@@ -348,6 +460,7 @@ export function buildWorld(onStep: (p: number) => void): WorldParts {
     segs(leftPage, rules, M.inkSoft);
     press.restLit = id;
   }
+  finish(press);
   stations.push(press); step();
 
   // ---- 06 FAILURES: dominoes — one down, one leaning, the rest standing
@@ -361,6 +474,7 @@ export function buildWorld(onStep: (p: number) => void): WorldParts {
     tile(1.1, 0);
     tile(2.7, 0);
   }
+  finish(dominoes);
   stations.push(dominoes); step();
 
   // ---- 07 ATHLETICS: a track, lanes drawn on the ground, hurdles on the straight
@@ -397,6 +511,7 @@ export function buildWorld(onStep: (p: number) => void): WorldParts {
     segs(g, [fx, 0.04, R0, fx, 0.04, R0 + lanes * lw], M.ink);
     for (let k = 0; k < lanes; k++) box(g, id, 0.5, 0.22, 0.3, -fx + 0.6, 0, zLane(k));
   }
+  finish(track, { objects: false });
   stations.push(track); step();
 
   // ---- 08 CREATIVE: a drafting table with a sketch drawn structure-first
@@ -424,6 +539,7 @@ export function buildWorld(onStep: (p: number) => void): WorldParts {
     cyl(pencil, id, 0.055, 1.1, 0, 0, 0, 6);
     const tip = new CylinderGeometry(0, 0.055, 0.18, 6); tip.translate(0, 1.19, 0); mesh(tip, id, pencil);
   }
+  finish(drafting);
   stations.push(drafting); step();
 
   // ---- 09 LIBRARY: a shelf of exactly eleven books
@@ -448,6 +564,7 @@ export function buildWorld(onStep: (p: number) => void): WorldParts {
       cursor[row] += w + 0.03 + (lean ? 0.25 : 0);
     });
   }
+  finish(shelf);
   stations.push(shelf); step();
 
   // ---- 10 RECORD: an open ledger, ruled
@@ -467,6 +584,7 @@ export function buildWorld(onStep: (p: number) => void): WorldParts {
     cyl(g, id, 0.14, 2.6, 0, 0.42, -1.3, 16).rotation.x = Math.PI / 2;
     box(g, id, 4.2, 0.17, 2.9, 0, 0.25, 0);
   }
+  finish(ledger);
   stations.push(ledger); step();
 
   // ---- 11 MAP: a globe on a stand, coastlines and the places that taught me
@@ -474,6 +592,8 @@ export function buildWorld(onStep: (p: number) => void): WorldParts {
   const globeSt = station("globe", 222, -6, { h: 15, az: 44, el: 20, dy: 5.4 });
   const sphereHolder = new Group();
   const labels: { name: string; local: Vector3 }[] = [];
+  const pinData: { place: Place; local: Vector3 }[] = [];
+  let selRing!: Line;
   let globeSpin!: Spinner;
   {
     const g = globeSt.group, id = newId();
@@ -497,21 +617,28 @@ export function buildWorld(onStep: (p: number) => void): WorldParts {
     for (const ringPts of LAND) for (let i = 0; i < ringPts.length - 1; i++) { const a = v(ringPts[i][0], ringPts[i][1]), b = v(ringPts[i + 1][0], ringPts[i + 1][1]); coast.push(a.x, a.y, a.z, b.x, b.y, b.z); }
     segs(sphereHolder, coast, M.ink);
     const pins: number[] = [];
-    for (const [name, lat, lon, anchor] of PLACES) {
-      const a = v(lat, lon, R * 1.004), b = v(lat, lon, R * (anchor ? 1.09 : 1.05));
+    for (const pl of PLACES) {
+      const a = v(pl.lat, pl.lon, R * 1.004), b = v(pl.lat, pl.lon, R * (pl.anchor ? 1.09 : 1.05));
       pins.push(a.x, a.y, a.z, b.x, b.y, b.z);
-      if (anchor) labels.push({ name, local: v(lat, lon, R * 1.1) });
+      if (pl.anchor) labels.push({ name: pl.name, local: v(pl.lat, pl.lon, R * 1.1) });
+      pinData.push({ place: pl, local: v(pl.lat, pl.lon, R * (pl.anchor ? 1.09 : 1.05)) });
     }
     segs(sphereHolder, pins, M.accent);
+    // the ring that marks a chosen place, laid flat on the sphere's surface
+    const loop: Vector3[] = [];
+    for (let i = 0; i <= 40; i++) { const t = (i / 40) * Math.PI * 2; loop.push(new Vector3(Math.cos(t) * 0.22, Math.sin(t) * 0.22, 0)); }
+    selRing = poly(sphereHolder, loop, M.accent);
+    selRing.visible = false;
     // Start with India facing the camera's side of the room.
-    globeSpin = { obj: sphereHolder, id: gid, angle: -1.35 + Math.PI * 0.25, vel: 0, idle: 0.06, axis: "globe" };
+    globeSpin = { obj: sphereHolder, id: gid, angle: -1.35 + Math.PI * 0.25, vel: 0, idle: 0.06, axis: "globe", bx: 0, bv: 0, name: "The globe" };
     sphereHolder.rotation.y = globeSpin.angle;
     globeSt.spinners.push(globeSpin);
   }
+  finish(globeSt);
   stations.push(globeSt); step();
 
   // ---- 13 CONTACT: a gift box — Christmas-in-a-Box
-  const gift = station("gift", 246, -12, { h: 9.5, az: 40, el: 30, dy: 1.4 });
+  const gift = station("gift", 264, -6, { h: 9.5, az: 40, el: 30, dy: 1.4 });
   {
     const g = gift.group;
     plinth(g, 4.6, 4.6, 0.3);
@@ -525,9 +652,10 @@ export function buildWorld(onStep: (p: number) => void): WorldParts {
     box(o, id, 2.24, 1.56, 0.3, 0, 0, 0);
     const loop = (ry: number) => { const t = new TorusGeometry(0.42, 0.09, 8, 28); t.rotateY(ry); t.rotateZ(0.5 * Math.sign(ry || 1)); t.translate(Math.cos(ry) * 0.35, 2.32, -Math.sin(ry) * 0.35); mesh(t, id, o); };
     loop(0.6); loop(0.6 + Math.PI);
-    gift.spinners.push({ obj: o, id, angle: 0, vel: 0, idle: 0.12, axis: "y" });
+    gift.spinners.push({ obj: o, id, angle: 0, vel: 0, idle: 0.12, axis: "y", bx: 0, bv: 0, name: "Christmas-in-a-Box" });
     gift.restLit = id;
   }
+  finish(gift);
   stations.push(gift); step();
 
   for (const s of stations) {
@@ -551,10 +679,10 @@ export function buildWorld(onStep: (p: number) => void): WorldParts {
     route: { full, drawn, count: sample.length },
     setYear,
     setRate,
-    globe: { sphere: sphereHolder, spin: globeSpin, radius: R, labels },
+    globe: { sphere: sphereHolder, spin: globeSpin, radius: R, labels, pins: pinData, ring: selRing },
     overview: {
       // The cover: the table seen end-on, the first models stacked in a column on the right.
-      day: { target: new Vector3(66, 0, -6), h: 56, az: 14, el: 27, sx: -0.2, sy: -0.12 },
+      day: { target: new Vector3(64, 0, -6), h: 58, az: 14, el: 27, sx: -0.21, sy: -0.2 },
       night: { target: new Vector3(centerX + 20, 0, -12), h: 118, az: 45, el: 46, sx: -0.18, sy: 0 },
     },
   };

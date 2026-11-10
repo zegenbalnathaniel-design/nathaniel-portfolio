@@ -10,14 +10,16 @@ import "./styles/sections.css";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { runBoot } from "./boot";
-import { initCmdbar, setActiveSection } from "./cmdbar";
+import { initNav, setActiveSection } from "./nav";
 import { applyPalette, paletteBetween } from "./daylight";
 import { initFigures } from "./figures";
 import { initInteractives, openBrief } from "./interactives";
 import { initCursor, initReveals } from "./motion";
-import { initScroll, lenis, startScroll } from "./scroll";
+import { initScroll, lenis, scrollToEl, startScroll } from "./scroll";
 import { fmtClock, sectionClock, sections } from "./sections";
+import { initVisionBoard } from "./visionboard";
 import { World } from "./world";
+import { PLACES } from "./world/stations";
 
 const html = document.documentElement;
 const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -42,12 +44,59 @@ document.fonts?.ready.then(() => { fontsReady = true; measure(); ScrollTrigger.r
 
 const { playCover } = initReveals(reduced);
 const cursor = initCursor();
-if (world) world.onHover = (k) => cursor.setDrag(k === "drag");
 initFigures();
+initVisionBoard();
 initInteractives({ onYear: (i) => world?.setYear(i), onRate: (r) => world?.setRate(r), reduced });
-initCmdbar({ reduced, openBrief });
+initNav({ reduced, openBrief });
 
 for (const s of sections) s.el.dataset.clock = `${fmtClock(sectionClock[s.id] ?? 0)} IST`;
+
+// ---- the world talks back: hover tips, travelling by clicking a model, choosing a place
+const tip = document.getElementById("worldTip")!;
+const placeName = document.getElementById("placeName")!;
+const placeMeta = document.getElementById("placeMeta")!;
+const placeNote = document.getElementById("placeNote")!;
+const placesEl = document.getElementById("places")!;
+const regions = ["Gulf", "Southeast Asia", "South India", "West & North India"];
+placesEl.innerHTML = regions
+  .map((r) => `<div><h4>${r}</h4><div class="pl">${PLACES.filter((p) => p.region === r).map((p) => `<button type="button" data-place="${p.name}">${p.name}</button>`).join("")}</div></div>`)
+  .join("");
+const fmtLat = (v: number, pos: string, neg: string) => `${Math.abs(v).toFixed(2)}°${v >= 0 ? pos : neg}`;
+const showPlace = (name: string, note: string) => {
+  const p = PLACES.find((x) => x.name === name);
+  if (!p) return;
+  placeName.textContent = p.name;
+  placeMeta.textContent = `${p.region} · ${fmtLat(p.lat, "N", "S")} ${fmtLat(p.lon, "E", "W")}`;
+  placeNote.textContent = note;
+  placesEl.querySelectorAll<HTMLButtonElement>("button").forEach((b) => b.classList.toggle("on", b.dataset.place === name));
+};
+placesEl.addEventListener("click", (e) => {
+  const b = (e.target as HTMLElement).closest<HTMLButtonElement>("button[data-place]");
+  if (!b) return;
+  if (world?.ready) world.focusPlace(b.dataset.place!);
+  else showPlace(b.dataset.place!, "");
+});
+
+if (world) {
+  const w = world;
+  const info: Record<string, { title: string; code: string }> = {};
+  for (const s of sections) if (!info[s.cam]) info[s.cam] = { title: s.title, code: s.code };
+  info.gift = { title: "Service", code: "SERV" };
+  w.setStationInfo(info);
+  w.onHover = (kind) => cursor.setWorld(kind);
+  w.onTip = (t) => {
+    if (!t) { tip.classList.remove("on"); return; }
+    (tip.firstElementChild as HTMLElement).textContent = t.title;
+    (tip.lastElementChild as HTMLElement).textContent = t.sub;
+    tip.style.transform = `translate3d(${Math.min(t.x + 18, innerWidth - 240)}px, ${t.y + 16}px, 0)`;
+    tip.classList.add("on");
+  };
+  w.onStation = (key) => {
+    const s = sections.find((x) => x.cam === key) ?? sections.find((x) => x.cam.startsWith(key));
+    if (s) scrollToEl(s.el, reduced);
+  };
+  w.onPlace = (place, note) => showPlace(place.name, note);
+}
 
 // ---- where are we in the day? centres of every section, measured on resize
 let centers: number[] = [];
@@ -66,6 +115,7 @@ new ResizeObserver(measure).observe(document.querySelector("main")!);
 
 const ease = (t: number) => t * t * (3 - 2 * t);
 let paletteKey = "";
+let mapFocused = false;
 function update() {
   const sy = lenis ? lenis.scroll : scrollY;
   const y = sy + innerHeight / 2;
@@ -82,8 +132,11 @@ function update() {
   if (world && key !== paletteKey) { paletteKey = key; world.setPalette(p); }
   const progress = Math.min(1, Math.max(0, sy / Math.max(1, docH)));
   world?.setRail(a.cam, b.cam, t, progress);
+  const active = t < 0.5 ? a : b;
+  // first time the globe is in front of us, it turns to home
+  if (!mapFocused && active.id === "map" && world?.ready) { mapFocused = true; world.focusPlace("Chennai"); }
   const clock = fmtClock((sectionClock[a.id] ?? 0) + ((sectionClock[b.id] ?? 0) - (sectionClock[a.id] ?? 0)) * t);
-  setActiveSection(t < 0.5 ? a.index : b.index, clock);
+  setActiveSection(active.index, clock, progress);
 }
 
 gsap.ticker.add(() => {

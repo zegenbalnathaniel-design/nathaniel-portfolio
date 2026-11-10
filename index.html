@@ -4,10 +4,10 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Nathaniel Zegenbal — Economics &amp; Finance</title>
-<meta name="description" content="Nathaniel Zegenbal, Chennai — IB Class of 2027. Two independent research papers under peer review, a national top-10 venture, a student economics newsletter, and the questions that connect them." />
+<meta name="description" content="Nathaniel Zegenbal, Chennai — IB Class of 2027. Two research papers under peer review, Edugate (High School Startup League top 10 of 10,000), The Financial Frontier, the India Economic Intelligence Lab, and the questions that connect them." />
 <meta name="theme-color" content="#120C08" />
 <meta property="og:title" content="Nathaniel Zegenbal — Economics &amp; Finance" />
-<meta property="og:description" content="Research, ventures and the questions behind them. Chennai · IB Class of 2027." />
+<meta property="og:description" content="Research, ventures, service and the questions behind them. Chennai · IB Class of 2027." />
 <meta property="og:type" content="website" />
 <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 <script>document.documentElement.classList.add('js');</script>
@@ -22,14 +22,14 @@
     <div class="boot-bar">
       <span class="boot-mark">NZ</span>
       <span class="boot-sys">NZ TERMINAL <i>·</i> PERSONAL RESEARCH SYSTEM</span>
-      <span class="boot-rel">REL 12.0</span>
+      <span class="boot-rel">REL 13.0</span>
       <span class="boot-time" id="bootTime">--</span>
     </div>
     <div class="boot-body">
       <pre class="boot-log" id="bootLog"></pre>
     </div>
     <div class="boot-keys" id="bootKeys">
-      <span class="k" data-k="RSRCH">RSRCH</span><span class="k" data-k="VNTR">VNTR</span><span class="k" data-k="TFF">TFF</span><span class="k" data-k="ATHL">ATHL</span><span class="k" data-k="MAP">MAP</span><span class="k" data-k="CONT">CONT</span><span class="k go">&lt;GO&gt;</span>
+      <span class="k">RSRCH</span><span class="k">LAB</span><span class="k">VNTR</span><span class="k">TFF</span><span class="k">SERV</span><span class="k">CONT</span><span class="k go">&lt;GO&gt;</span>
     </div>
     <div class="boot-ticker"><div class="boot-ticker-track" id="bootTicker"></div></div>
     <div class="boot-foot"><span id="bootHint">AUTHENTICATING…</span><span>ANY KEY TO SKIP</span></div>
@@ -40,100 +40,109 @@
 <!-- ================= WORLD ================= -->
 <canvas class="world" id="world" aria-hidden="true"></canvas>
 <div class="world-labels" id="worldLabels" aria-hidden="true"></div>
+<div class="world-tip" id="worldTip" aria-hidden="true"><b></b><span></span></div>
 <div class="grain" aria-hidden="true"></div>
 
-<!-- ================= COMMAND BAR ================= -->
-<header class="cmdbar" id="cmdbar">
-  <a class="cmd-mark" href="#cover" data-go="TOP" aria-label="Back to the cover">NZ</a>
-  <form class="cmd-form" id="cmdForm" role="search" autocomplete="off">
-    <label class="sr-only" for="cmd">Type a function, then press Enter</label>
-    <span class="cmd-caret" aria-hidden="true">&gt;</span>
-    <input id="cmd" name="cmd" type="text" spellcheck="false" autocapitalize="characters" placeholder="TYPE A FUNCTION — e.g. BFPI" aria-controls="cmdList" aria-autocomplete="list" aria-expanded="false" role="combobox" />
-    <button class="cmd-go" type="submit">&lt;GO&gt;</button>
-    <ul class="cmd-list" id="cmdList" role="listbox" aria-label="Functions"></ul>
-  </form>
-  <div class="cmd-meta" aria-hidden="true">
-    <span class="cmd-sec" id="cmdSec">00 COVER</span>
-    <span class="cmd-light"><i id="cmdSun"></i><b id="cmdLight">07:00</b></span>
-    <span class="cmd-clock" id="cmdClock">IST --:--</span>
+<!-- ================= NAV ================= -->
+<header class="topbar" id="topbar">
+  <a class="tb-mark" href="#cover" data-go="TOP" aria-label="Back to the cover">NZ</a>
+  <a class="tb-id" href="#cover" data-go="TOP"><b>Nathaniel Zegenbal</b><span>Economics · Finance · Chennai</span></a>
+  <nav class="tb-nav" id="tbNav" aria-label="Sections">
+    <a href="#ownership" data-go="RSRCH" data-group="research">Research</a>
+    <a href="#lab" data-go="LAB" data-group="lab">The Lab</a>
+    <a href="#ventures" data-go="VNTR" data-group="ventures">Ventures</a>
+    <a href="#newsletter" data-go="TFF" data-group="writing">Writing</a>
+    <a href="#athletics" data-go="ATHL" data-group="life">Life</a>
+    <a href="#service" data-go="SERV" data-group="service">Service</a>
+    <a href="#contact" data-go="CONT" data-group="contact">Contact</a>
+  </nav>
+  <div class="tb-tools">
+    <span class="tb-light" aria-hidden="true"><i id="cmdSun"></i><b id="cmdLight">07:00</b><em id="cmdSec">COVER</em></span>
+    <button class="tb-cmd" id="cmdOpen" type="button" aria-haspopup="dialog" aria-controls="palette"><kbd>⌘K</kbd><span>Functions</span></button>
+    <button class="tb-brief" id="briefBtn" type="button" aria-haspopup="dialog"><span>Brief</span> <i>90s</i></button>
+    <button class="tb-menu" id="menuBtn" type="button" aria-expanded="false" aria-controls="menu"><span>Menu</span><i></i></button>
   </div>
-  <button class="cmd-brief" id="briefBtn" type="button"><span>Brief</span><i>90s</i></button>
+  <div class="tb-progress" aria-hidden="true"><i id="tbProgress"></i></div>
 </header>
 
-<nav class="rail" id="rail" aria-label="Sections"></nav>
+<!-- command palette: the terminal, on demand -->
+<div class="palette" id="palette" role="dialog" aria-modal="true" aria-label="Functions" hidden>
+  <div class="pal-bg" data-close></div>
+  <div class="pal-box">
+    <div class="pal-head"><span class="boot-mark">NZ</span><span>TERMINAL · TYPE A FUNCTION, PRESS &lt;GO&gt;</span><span class="pal-clock" id="cmdClock">IST --:--</span></div>
+    <form class="pal-form" id="cmdForm" autocomplete="off">
+      <label class="sr-only" for="cmd">Function</label>
+      <span class="pal-caret" aria-hidden="true">&gt;</span>
+      <input id="cmd" name="cmd" type="text" spellcheck="false" autocapitalize="characters" placeholder="BFPI · EDGT · MAP · BRIEF …" aria-controls="cmdList" aria-autocomplete="list" aria-expanded="true" role="combobox" />
+      <button class="pal-go" type="submit">&lt;GO&gt;</button>
+    </form>
+    <ul class="pal-list" id="cmdList" role="listbox" aria-label="Functions"></ul>
+    <div class="pal-foot"><span>↑ ↓ choose</span><span>↵ go</span><span>esc close</span><span>type anywhere to open</span></div>
+  </div>
+</div>
+
+<!-- menu (small screens) -->
+<div class="menu" id="menu" hidden>
+  <nav class="menu-list" id="menuList" aria-label="All sections"></nav>
+  <div class="menu-foot"><a href="mailto:zegenbalnathaniel@gmail.com">zegenbalnathaniel@gmail.com</a><button type="button" data-brief>Brief · 90s</button></div>
+</div>
+
+<nav class="rail" id="rail" aria-label="Section index"></nav>
 
 <main id="main">
 
-  <!-- ============ 00 COVER ============ -->
+  <!-- ============ COVER ============ -->
   <section class="sec sec-cover" id="cover" data-code="TOP" data-title="Cover" data-light="dawn" data-cam="cover">
     <div class="cover">
-      <p class="cover-kick" data-reveal>Undergraduate applicant <i>·</i> Economics &amp; Finance</p>
+      <p class="cover-kick" data-reveal>Undergraduate applicant <i>·</i> Economics &amp; Finance <i>·</i> IB 2027</p>
       <h1 class="cover-name" data-split><span>Nathaniel</span><br /><em>Zegenbal</em></h1>
       <div class="cover-low">
         <p class="cover-thesis" data-reveal>Why does the same effort change one life and not another?</p>
         <ul class="cover-meta" data-reveal>
           <li><span>Base</span>Chennai, India</li>
-          <li><span>Class</span>IB Diploma, 2027</li>
+          <li><span>School</span>Alphabet International School</li>
           <li><span>Research</span>Two papers under peer review</li>
+          <li><span>Venture</span>Edugate · HSSL top 10 of 10,000</li>
         </ul>
       </div>
-      <figure class="plate plate-terrain" data-reveal>
+      <figure class="fig-stage fig-hero" data-reveal>
         <div class="hfig" data-figure="terrain" data-play data-label="Eighty-one pillars on a plinth that rise around the pointer"></div>
-        <figcaption><span>Fig. 00 — Terrain</span><span class="readout" data-read>rest</span></figcaption>
+        <figcaption class="annot"><i></i><span>Fig. 00 — Terrain</span><em>move across · the field rises</em><b class="readout" data-read>rest</b></figcaption>
       </figure>
-      <a class="cover-cue" href="#habit" data-go="HABIT"><span class="cue-line"></span>Scroll — the day begins at 07:00</a>
+      <a class="cover-cue" href="#habit" data-go="HABIT"><span class="cue-line"></span>Scroll — the day begins at 07:00 · or press ⌘K</a>
     </div>
   </section>
 
-  <!-- ============ 01 THE HABIT ============ -->
+  <!-- ============ §01 HABIT ============ -->
   <section class="sec" id="habit" data-code="HABIT" data-title="The Habit" data-light="morning" data-cam="habit">
     <header class="sec-head">
       <div class="sec-tag"><span class="sec-no">§01</span><span>The Habit</span><button class="gochip" data-go="HABIT">HABIT &lt;GO&gt;</button></div>
       <h2 class="sec-title" data-split>Build a rough version. Take it apart honestly. <em>Build it again.</em></h2>
     </header>
-    <div class="board plate" data-reveal>
-      <div class="board-scroll" tabindex="0" aria-label="Vision board spreadsheet, scrolls sideways">
-        <img src="/media/vision-board.webp" width="2600" height="518" alt="The actual vision-board spreadsheet: grade rows against columns for academics, positions, internships, competitions, social work, books and sports" loading="lazy" decoding="async" />
-      </div>
-      <div class="board-bar"><span>The actual file — “Nathaniel’s Vision Board.xlsx”, kept since Grade 9</span><span class="drag">← drag sideways →</span></div>
+    <div class="prose narrow" data-reveal>
+      <p>Since Grade 9 I’ve kept a planning spreadsheet — every cell a commitment, written down before I knew whether I could keep it. “CEO — Edugate” sat in a cell as a plan long before it was a line on a resume.</p>
+      <p>The board taught me a method the achievements themselves never could: put the target in writing, attack the first version honestly, and treat every failed draft as the next one’s raw material. I’d rather be right than look right — so the red cells stay on the sheet next to the green ones.</p>
     </div>
-    <div class="cols">
-      <div class="prose" data-reveal>
-        <p>Since Grade 9 I’ve kept a planning spreadsheet — every cell a commitment, written down before I knew whether I could keep it. “CEO — Edugate” and “JP Morgan Research Paper” sat in those cells as plans long before they were lines on a resume.</p>
-        <p>The board taught me a method the achievements themselves never could: put the target in writing, attack the first version honestly, and treat every failed draft as the next one’s raw material. I’d rather be right than look right — and the struck-through cells matter as much as the ticked ones. Some things I cut on purpose, so the rest could be done properly.</p>
+    <div class="sheet-wrap" data-reveal>
+      <div class="sheet" id="sheet">
+        <div class="sheet-title"><span class="dots"><i></i><i></i><i></i></span><b>Nathaniel’s Vision Board.xlsx</b><span class="sheet-saved">kept since Grade 9</span></div>
+        <div class="sheet-tools">
+          <span class="sheet-ref" id="sheetRef">C3</span><span class="sheet-fx">fx</span><div class="sheet-formula" id="sheetFormula" aria-live="polite">Click any cell.</div>
+        </div>
+        <div class="sheet-filter" role="group" aria-label="Show">
+          <button type="button" class="on" data-f="all">All</button>
+          <button type="button" data-f="done"><i class="st done"></i>Done</button>
+          <button type="button" data-f="miss"><i class="st miss"></i>Dropped or missed</button>
+          <button type="button" data-f="tbd"><i class="st tbd"></i>Still open</button>
+        </div>
+        <div class="sheet-grid" id="sheetGrid" tabindex="0" aria-label="Vision board grid, scrolls sideways"></div>
+        <div class="sheet-tabs"><span class="on">Highschool – VB</span><span>Guidance Doc</span><span>Grade 9</span><span>Grade 10</span><em>← drag the sheet sideways →</em></div>
       </div>
-      <div class="cells" data-reveal>
-        <div class="grade"><h3>Grade 9 <span>2023–24</span></h3>
-          <ul>
-            <li class="done"><b>Sports</b>CSK Academy — U-16 · 100/200/400m &amp; relay: 1st</li>
-            <li class="done"><b>Internship</b>Illumine Industries — marketing</li>
-          </ul></div>
-        <div class="grade"><h3>Grade 10 <span>2024–25</span></h3>
-          <ul>
-            <li class="done"><b>Positions</b>MUN — SPECPOL chairing</li>
-            <li class="done"><b>Social work</b>Books Donation Drive · Christmas Box</li>
-            <li class="done"><b>Sports</b>5K · 10K · SDAT swim camp</li>
-          </ul></div>
-        <div class="grade"><h3>Grade 11 <span>2025–26</span></h3>
-          <ul>
-            <li class="done"><b>Positions</b>CEO — Edugate</li>
-            <li class="done"><b>Extras</b>JP Morgan Research Paper</li>
-            <li class="done"><b>Competitions</b>NFO · HSSL · Melbourne BP · Wharton</li>
-            <li class="done"><b>Schedule</b>Guitar 30′ · Spanish 30′ · NFO prep · long run 10K+</li>
-            <li class="done"><b>Sports</b>10K ×2 · 21K ×2</li>
-            <li class="struck"><b>Certifications</b>Udemy — Python</li>
-          </ul></div>
-        <div class="grade"><h3>Grade 12 <span>2026–27</span></h3>
-          <ul>
-            <li><b>Sports</b>21K ×2 · 42K — planned</li>
-            <li><b>Social work</b>Toy Donation Drive — planned</li>
-          </ul></div>
-        <p class="note">Cells from the actual spreadsheet, kept since Grade 9. Ticked, struck through, or still open — the board shows the plan before the outcome.</p>
-      </div>
+      <p class="note">The real file, rebuilt cell by cell. Colours are mine: green when it happened, red when it didn’t, blue while it’s still open. Books, skills and sports come from the original plan, uncoloured.</p>
     </div>
   </section>
 
-  <!-- ============ 02 OWNERSHIP ============ -->
+  <!-- ============ §02 OWNERSHIP ============ -->
   <section class="sec" id="ownership" data-code="OWN" data-title="Ownership" data-light="morning" data-cam="ridges">
     <header class="sec-head">
       <div class="sec-tag"><span class="sec-no">§02</span><span>Research · Ownership &amp; Mobility</span><button class="gochip" data-go="OWN">OWN &lt;GO&gt;</button></div>
@@ -148,9 +157,8 @@
       <p>My parents were the first in their families to finish college — which made education, in our house, less a qualification than a form of economic freedom. So when India looked almost equal on one measure and nothing of the kind on another, I wanted to know which measure was lying.</p>
       <p class="struckp">My first answer leaned on the one Gini that made the story tidy. The story was wrong. I rebuilt it around where consumption, income, and wealth inequality pull apart — because that gap, not the headline, is where mobility lives.</p>
     </div>
-
     <figure class="fig plate" id="fig01" data-reveal>
-      <div class="fig-cap"><span class="fig-title">Fig. 01 — Capability-to-Ownership Index</span><span class="fig-hint">Scrub the decade. Watch the gap the headline hides.</span></div>
+      <div class="fig-cap"><span class="fig-title">Fig. 01 — Capability-to-Ownership Index</span><span class="fig-hint">Scrub the decade. Watch the gap the headline hides — the walls in the drawing follow.</span></div>
       <div class="fig01">
         <div>
           <svg class="chart" viewBox="0 0 1000 420" role="img" aria-labelledby="f1t f1d">
@@ -186,7 +194,7 @@
     </figure>
   </section>
 
-  <!-- ============ 03 TRANSMISSION ============ -->
+  <!-- ============ §03 TRANSMISSION ============ -->
   <section class="sec" id="transmission" data-code="BFPI" data-title="Transmission" data-light="noon" data-cam="bank">
     <header class="sec-head">
       <div class="sec-tag"><span class="sec-no">§03</span><span>Research · Transmission</span><button class="gochip" data-go="BFPI">BFPI &lt;GO&gt;</button></div>
@@ -243,7 +251,7 @@
           </div>
           <div class="chans" id="chanList"></div>
           <p class="ratecap" id="rateCap"></p>
-          <p class="worldnote">The bank in the drawing beside you answers the slider.</p>
+          <p class="worldnote">The pillar beside the bank in the drawing rises and falls with this slider.</p>
         </div>
         <div class="paradox">The <b>central paradox</b> of the paper: raise the rate and profitability climbs with it (ρ = +0.722) — but the same hikes mark down the securities book, so the full index barely responds (ρ = +0.111). The lever’s power depends entirely on what you choose to measure.</div>
         <p class="source">Between 0.23% and 3.95% — the paper’s regime means (Table 3) — values interpolate the reported figures. Beyond them, toward the 0.05% floor and the 5.33% peak the paper covers, readings extend each regime’s trend and are flagged as extrapolated. Associational, not causal — as the paper itself insists.</p>
@@ -302,10 +310,44 @@
     </div>
   </section>
 
-  <!-- ============ 04 VENTURES ============ -->
+  <!-- ============ §04 THE LAB ============ -->
+  <section class="sec" id="lab" data-code="LAB" data-title="The Lab" data-light="noon" data-cam="lab">
+    <header class="sec-head">
+      <div class="sec-tag"><span class="sec-no">§04</span><span>The Lab · India Economic Intelligence Lab</span><button class="gochip" data-go="LAB">LAB &lt;GO&gt;</button></div>
+      <h2 class="sec-title" data-split>I didn’t build a dashboard. I built somewhere to <em>test my own papers.</em></h2>
+    </header>
+    <div class="lab-intro">
+      <div class="prose" data-reveal>
+        <p>The India Economic Intelligence Lab is the computational companion to both papers: an environment where each argument has to survive Indian data before I’m allowed to believe it. It isn’t a product, a financial-advice tool or a general economics dashboard — it’s where I go to find out whether I’m wrong.</p>
+      </div>
+      <figure class="fig-stage fig-side" data-reveal>
+        <div class="hfig" data-figure="hub" data-label="A hub with eight tiles around it on dashed links; the tile under the pointer rises and its link turns solid"></div>
+        <figcaption class="annot"><i></i><span>Fig. 04 — Hub</span><em>every lab answers to one evidence ledger</em><b class="readout" data-read>rest</b></figcaption>
+      </figure>
+    </div>
+    <div class="lab-qs" data-reveal>
+      <div class="lab-q"><span>Question 1 · Wealth &amp; inequality</span><p>How do income, ownership, asset composition and returns on capital shape wealth accumulation and mobility in India?</p></div>
+      <div class="lab-q"><span>Question 2 · Banking &amp; monetary policy</span><p>How far did policy-rate changes move bank performance, 2018–2024? My BFPI, adapted to a five-bank Indian panel — the <b>iBFPI</b> — set against the RBI repo rate with a rate-regime split.</p></div>
+    </div>
+    <ol class="labs" data-reveal>
+      <li><b>01</b><h3>Wealth &amp; Inequality</h3><p>Income and wealth groups, the composition effect, Monte Carlo runs, r − g.</p></li>
+      <li><b>02</b><h3>Inequality &amp; Financialisation</h3><p>Lorenz curves, Gini lower bounds, household assets, financial deepening.</p></li>
+      <li><b>03</b><h3>Banking &amp; Monetary Policy</h3><p>The iBFPI, the repo-rate comparison, regime split and robustness checks.</p></li>
+      <li><b>04</b><h3>State Economy</h3><p>σ- and β-convergence across states on a balanced panel, a tile map, a workbench.</p></li>
+      <li><b>05</b><h3>Housing Intelligence</h3><p>NHB RESIDEX prices against a documented state-income proxy.</p></li>
+      <li><b>06</b><h3>Structural Transformation</h3><p>Sector output against employment, relative labour productivity, peers.</p></li>
+    </ol>
+    <div class="lab-foot" data-reveal>
+      <p><b>Honest by construction.</b> Every dataset sits in an evidence ledger — source, units, transformations, limitations. The bank panel is labelled <span class="tag">ILLUSTRATIVE</span> until real filings replace it, and the macro simulator only propagates <span class="tag">HYPOTHETICAL</span> shocks with cited parameters.</p>
+      <p class="lab-stack">Python · Streamlit · pandas · pytest — fifteen pages, a regression workbench with diagnostics, a research library. Runs locally with no API keys.</p>
+      <a class="work-link" href="https://github.com/zegenbalnathaniel-design/India-Economic-Intelligence-Lab" target="_blank" rel="noopener">Explore the Lab on GitHub <span>↗</span></a>
+    </div>
+  </section>
+
+  <!-- ============ §05 VENTURES ============ -->
   <section class="sec" id="ventures" data-code="VNTR" data-title="Ventures" data-light="afternoon" data-cam="plinths">
     <header class="sec-head">
-      <div class="sec-tag"><span class="sec-no">§04</span><span>Access · Ventures &amp; writing</span><button class="gochip" data-go="VNTR">VNTR &lt;GO&gt;</button></div>
+      <div class="sec-tag"><span class="sec-no">§05</span><span>Access · Ventures &amp; writing</span><button class="gochip" data-go="VNTR">VNTR &lt;GO&gt;</button></div>
       <h2 class="sec-title" data-split>Who’s locked out of understanding money — and how do you <em>let them in?</em></h2>
     </header>
     <div class="prose narrow" data-reveal>
@@ -313,52 +355,45 @@
     </div>
 
     <div class="works">
-      <article class="work" id="w-edugate" data-reveal data-obj="gate">
-        <div class="work-fig plate"><div class="hfig" data-figure="exploded" data-label="An app window in four layers; moving across opens the gap, moving down picks a layer"></div><span class="readout" data-read>rest</span></div>
+      <article class="work" id="w-edugate" data-reveal>
+        <figure class="fig-stage fig-card"><div class="hfig" data-figure="exploded" data-label="An app window in four layers; moving across opens the gap, moving down picks a layer"></div><figcaption class="annot"><i></i><em>move across · open the layers</em><b class="readout" data-read>rest</b></figcaption></figure>
         <div class="work-body">
           <span class="work-kind">Venture · sole founder</span>
           <h3>Edugate</h3>
-          <p class="work-stat"><b data-count="10">Top 10</b> <span>of 15,000+ · about 0.07%</span></p>
+          <p class="work-stat"><b>Top 10</b> <span>of 10,000 · High School Startup League · India &amp; the Middle East</span></p>
           <p>An education-intelligence platform for families navigating school and college choices with no reliable data. Built the product, data logic and pitch alone; pitched live to leading VCs and founders at the High School Startup League finale — until one unexpected question knocked me flat. That story continues in <a href="#failures" data-go="FAIL">What Didn’t Work</a>.</p>
           <a class="work-link" href="https://github.com/zegenbalnathaniel-design/Edugate" target="_blank" rel="noopener">Source on GitHub <span>↗</span></a>
         </div>
       </article>
 
-      <article class="work" id="w-tff" data-reveal data-obj="papers">
-        <div class="work-fig plate"><div class="hfig" data-figure="vault" data-label="A vault door; circling the pointer turns its dial and on forty the bolts draw back"></div><span class="readout" data-read>rest</span></div>
+      <article class="work" id="w-tff" data-reveal>
+        <figure class="fig-stage fig-card"><div class="hfig" data-figure="vault" data-label="A vault door; circling the pointer turns its dial and on forty the bolts draw back"></div><figcaption class="annot"><i></i><em>circle to turn the dial · 40 opens it</em><b class="readout" data-read>rest</b></figcaption></figure>
         <div class="work-body">
           <span class="work-kind">Publication · founder &amp; writer</span>
           <h3>The Financial Frontier</h3>
           <p class="work-stat"><b>Bi-weekly</b> <span>economics newsletter · since April 2026</span></p>
-          <p>Policy and markets, translated for students who find economics intimidating. Writing it taught me the only honest test of understanding something: explaining it simply.</p>
-          <a class="work-link" href="#newsletter" data-go="TFF">Open Issue No. 01 <span>↓</span></a>
+          <p>Policy and markets, translated for students who find economics intimidating. It now has its own site: an interactive globe, an economic network, a macro dashboard, a glossary and a fully sourced report every month. Writing it taught me the only honest test of understanding something: explaining it simply.</p>
+          <div class="work-links">
+            <a class="work-link" href="https://the-financial-frontier-h9aw.vercel.app/" target="_blank" rel="noopener">Visit the site <span>↗</span></a>
+            <a class="work-link" href="#newsletter" data-go="TFF">Issue No. 01 <span>↓</span></a>
+          </div>
         </div>
       </article>
 
-      <article class="work" id="w-btc" data-reveal data-obj="coin">
-        <div class="work-fig plate"><div class="hfig" data-figure="terminal" data-label="A terminal window; the pointer's height scrolls back through its history"></div><span class="readout" data-read>rest</span></div>
+      <article class="work" id="w-btc" data-reveal>
+        <figure class="fig-stage fig-card"><div class="hfig" data-figure="terminal" data-label="A terminal window; the pointer's height scrolls back through its history"></div><figcaption class="annot"><i></i><em>move up and down · scroll the history</em><b class="readout" data-read>rest</b></figcaption></figure>
         <div class="work-body">
           <span class="work-kind">Internship · Bitcoin Bharat · summer 2026</span>
           <h3>Bitcoin Desk Simulator</h3>
           <p class="work-stat"><b>Workshop</b> <span>+ simulation</span></p>
           <p>Building a workshop model and simulation that teaches core Bitcoin and financial concepts from nothing — finance literacy as a front door, not a gate. Teams trade a simulated market over a compressed run of “days”; news wires fire on set days; every team is scored against simply buying and holding. Most teams lose to holding — which is the lesson.</p>
+          <p>With my team I designed the workshop formats around it — sessions for corporate employees and for startup founders under Bitcoin Bharat’s “education before adoption” mission, each opening with the simulation.</p>
           <a class="work-link" href="https://github.com/zegenbalnathaniel-design/Bitcoin-Desk-Simulator" target="_blank" rel="noopener">Source on GitHub <span>↗</span></a>
         </div>
       </article>
 
-      <article class="work" id="w-ieil" data-reveal data-obj="columns">
-        <div class="work-fig plate"><div class="hfig" data-figure="plot" data-label="A bar chart with seven flat tabs; the pointer brushes them and each lifts a little"></div><span class="readout" data-read>rest</span></div>
-        <div class="work-body">
-          <span class="work-kind">Computational research · companion to both papers</span>
-          <h3>India Economic Intelligence Lab</h3>
-          <p class="work-stat"><b>6 labs</b> <span>· one environment, two research questions</span></p>
-          <p>Not a dashboard — an environment for investigating the questions in my own papers. Wealth and inequality: composition effects, asset allocation, r − g. Banking and monetary policy: my BFPI adapted to a five-bank Indian panel (the iBFPI) against the RBI repo rate. Every dataset sits in an evidence ledger; the bank panel is labelled illustrative until real filings replace it.</p>
-          <a class="work-link" href="https://github.com/zegenbalnathaniel-design/India-Economic-Intelligence-Lab" target="_blank" rel="noopener">Source on GitHub <span>↗</span></a>
-        </div>
-      </article>
-
-      <article class="work" id="w-substack" data-reveal data-obj="letters">
-        <div class="work-fig plate"><div class="hfig" data-figure="riffle" data-label="A tray of eight cards; the card under the pointer stands up and the arrow keys walk the cards"></div><span class="readout" data-read>rest</span></div>
+      <article class="work" id="w-substack" data-reveal>
+        <figure class="fig-stage fig-card"><div class="hfig" data-figure="riffle" data-label="A tray of eight cards; the card under the pointer stands up and the arrow keys walk the cards"></div><figcaption class="annot"><i></i><em>hover or use ← → · pull a card</em><b class="readout" data-read>rest</b></figcaption></figure>
         <div class="work-body">
           <span class="work-kind">Writing · Substack</span>
           <h3>Essays on Substack</h3>
@@ -367,22 +402,13 @@
           <a class="work-link" href="https://nathanielzegenbal.substack.com/" target="_blank" rel="noopener">Read on Substack <span>↗</span></a>
         </div>
       </article>
-
-      <article class="work work-mini" data-reveal>
-        <div class="work-body">
-          <span class="work-kind">Teaching · volunteer</span>
-          <h3>CPU/GPU Seminar</h3>
-          <p class="work-stat"><b data-count="35">35</b> <span>Grade-8 students</span></p>
-          <p>Built and taught a seminar on processor architecture and parallel computing — because a student who understands how a machine thinks stops being afraid of it.</p>
-        </div>
-      </article>
     </div>
   </section>
 
-  <!-- ============ 05 NEWSLETTER ============ -->
+  <!-- ============ §06 NEWSLETTER ============ -->
   <section class="sec" id="newsletter" data-code="TFF" data-title="The Newsletter" data-light="afternoon" data-cam="press">
     <header class="sec-head">
-      <div class="sec-tag"><span class="sec-no">§05</span><span>The Financial Frontier</span><button class="gochip" data-go="TFF">TFF &lt;GO&gt;</button></div>
+      <div class="sec-tag"><span class="sec-no">§06</span><span>The Financial Frontier</span><button class="gochip" data-go="TFF">TFF &lt;GO&gt;</button></div>
       <h2 class="sec-title" data-split>Economics, translated for the people it <em>intimidates.</em></h2>
     </header>
     <div class="paper-card" data-reveal>
@@ -406,16 +432,19 @@
           <li><span>p.28</span>Ten terms from this issue — so the financial news stops being a foreign language.</li>
         </ol>
         <blockquote class="pull">“Complex financial events can be made understandable — without ever being oversimplified.”</blockquote>
-        <a class="btn-solid" href="/docs/the-financial-frontier-issue-01.pdf" target="_blank" rel="noopener" data-magnetic>Read the full June issue <span>PDF · 30pp →</span></a>
+        <div class="btn-row">
+          <a class="btn-solid" href="/docs/the-financial-frontier-issue-01.pdf" target="_blank" rel="noopener" data-magnetic>Read the June issue <span>PDF · 30pp →</span></a>
+          <a class="btn-ghost" href="https://the-financial-frontier-h9aw.vercel.app/" target="_blank" rel="noopener" data-magnetic>Visit the site <span>↗</span></a>
+        </div>
         <p class="method"><b>The five questions, on every page:</b> what happened → why it matters → who benefits → who’s hurt → key takeaway. Facts carry a source; analysis is our reading of them; opinion is labelled as opinion.</p>
       </div>
     </div>
   </section>
 
-  <!-- ============ 06 FAILURES ============ -->
+  <!-- ============ §07 FAILURES ============ -->
   <section class="sec" id="failures" data-code="FAIL" data-title="What Didn’t Work" data-light="late" data-cam="dominoes">
     <header class="sec-head">
-      <div class="sec-tag"><span class="sec-no">§06</span><span>What Didn’t Work</span><button class="gochip" data-go="FAIL">FAIL &lt;GO&gt;</button></div>
+      <div class="sec-tag"><span class="sec-no">§07</span><span>What Didn’t Work</span><button class="gochip" data-go="FAIL">FAIL &lt;GO&gt;</button></div>
       <h2 class="sec-title" data-split>Three things that failed — and what each one <em>cost me to admit.</em></h2>
     </header>
     <ol class="fails">
@@ -440,10 +469,10 @@
     </ol>
   </section>
 
-  <!-- ============ 07 ATHLETICS ============ -->
+  <!-- ============ §08 ATHLETICS ============ -->
   <section class="sec" id="athletics" data-code="ATHL" data-title="Athletics" data-light="golden" data-cam="track">
     <header class="sec-head">
-      <div class="sec-tag"><span class="sec-no">§07</span><span>Athletics — the same habit, away from the desk</span><button class="gochip" data-go="ATHL">ATHL &lt;GO&gt;</button></div>
+      <div class="sec-tag"><span class="sec-no">§08</span><span>Athletics — the same habit, away from the desk</span><button class="gochip" data-go="ATHL">ATHL &lt;GO&gt;</button></div>
       <h2 class="sec-title" data-split>Discipline you can <em>time.</em></h2>
     </header>
     <div class="acts">
@@ -461,8 +490,9 @@
         <div class="act-body">
           <span class="act-k">Cricket</span>
           <h3>CSK Academy — Under-16 squad</h3>
-          <p class="facts">Selected 2023–24 · nets, where nobody’s watching</p>
+          <p class="facts">District squads: Under-12 Pune · Under-16 Chennai · CSK Academy, selected 2023–24</p>
           <p>Cricket broke a wall I’d built. The sport doesn’t reward solitary ambition — it demands that every player contribute, and for the first time someone else’s good day felt like mine.</p>
+          <p>My MYP Personal Project grew out of it: a strength, endurance and agility plan for 12–16-year-old cricketers, tested on myself first — bench press 20 → 30 kg, pull-ups 5 → 20 in a set. Agility barely moved, and I wrote that down too.</p>
           <p class="vidnote">Live from training — muted loop.</p>
         </div>
       </article>
@@ -476,7 +506,7 @@
         </div>
       </article>
       <article class="act" data-reveal>
-        <div class="act-media wide"><video src="/media/swim-laps.mp4" muted loop playsinline preload="metadata" aria-label="Freestyle laps in an outdoor pool" data-autoplay></video></div>
+        <div class="act-media"><video src="/media/swim-laps.mp4" muted loop playsinline preload="metadata" aria-label="Freestyle laps in an outdoor pool" data-autoplay></video></div>
         <div class="act-body">
           <span class="act-k">Swimming</span>
           <h3>SDAT summer camp — and laps since</h3>
@@ -488,10 +518,10 @@
     </div>
   </section>
 
-  <!-- ============ 08 CREATIVE ============ -->
+  <!-- ============ §09 CREATIVE ============ -->
   <section class="sec" id="creative" data-code="CRTV" data-title="The Creative Side" data-light="dusk" data-cam="drafting">
     <header class="sec-head">
-      <div class="sec-tag"><span class="sec-no">§08</span><span>The Creative Side</span><button class="gochip" data-go="CRTV">CRTV &lt;GO&gt;</button></div>
+      <div class="sec-tag"><span class="sec-no">§09</span><span>The Creative Side</span><button class="gochip" data-go="CRTV">CRTV &lt;GO&gt;</button></div>
       <h2 class="sec-title" data-split>Where the discipline learns to <em>play.</em></h2>
     </header>
     <div class="trio">
@@ -505,7 +535,7 @@
         <span class="act-k">Sketching</span>
         <h3>Structure before detail</h3>
         <p class="facts">Perspective studies of monuments &amp; landmark architecture · self-taught</p>
-        <p>I draw the structure before the detail — which turns out to be how I read an economy too. This whole site is drawn the same way: lines first.</p>
+        <p>I draw the structure before the detail — which turns out to be how I read an economy too.</p>
       </article>
       <article class="tri" data-reveal>
         <span class="act-k">Design</span>
@@ -516,10 +546,10 @@
     </div>
   </section>
 
-  <!-- ============ 09 LIBRARY ============ -->
+  <!-- ============ §10 LIBRARY ============ -->
   <section class="sec" id="library" data-code="LIB" data-title="The Library" data-light="evening" data-cam="shelf">
     <header class="sec-head">
-      <div class="sec-tag"><span class="sec-no">§09</span><span>The Library</span><button class="gochip" data-go="LIB">LIB &lt;GO&gt;</button></div>
+      <div class="sec-tag"><span class="sec-no">§10</span><span>The Library</span><button class="gochip" data-go="LIB">LIB &lt;GO&gt;</button></div>
       <h2 class="sec-title" data-split>The books doing the <em>arguing in my head.</em></h2>
     </header>
     <ul class="shelf" data-reveal>
@@ -538,46 +568,51 @@
     <p class="prose narrow shelf-note" data-reveal>Piketty and the Inequality Report grounded my ownership research; Kelton and Friedman argue with each other whenever I write about policy; The Economist arrives weekly and anchors the newsletter. I keep authors I disagree with on the shelf on purpose.</p>
   </section>
 
-  <!-- ============ 10 RECORD ============ -->
+  <!-- ============ §11 RECORD ============ -->
   <section class="sec" id="record" data-code="REC" data-title="The Record" data-light="evening" data-cam="ledger">
     <header class="sec-head">
-      <div class="sec-tag"><span class="sec-no">§10</span><span>The Record</span><button class="gochip" data-go="REC">REC &lt;GO&gt;</button></div>
+      <div class="sec-tag"><span class="sec-no">§11</span><span>The Record</span><button class="gochip" data-go="REC">REC &lt;GO&gt;</button></div>
       <h2 class="sec-title" data-split>Everything else, <em>on one ledger.</em></h2>
     </header>
     <div class="ledger" data-reveal>
+      <div class="lrow"><span class="lc">Competition</span><span class="lt"><b>High School Startup League — Top 10 of 10,000</b> — Edugate, against entrants from across India and the Middle East; pitched live at the finale.</span><span class="lv">2025–26</span></div>
+      <div class="lrow"><span class="lc">Competition</span><span class="lt"><b>National Finance Olympiad — Round 2 finalist</b> — from a field of 50,000+ across financial literacy, investing, banking and macroeconomics.</span><span class="lv">2025–26</span></div>
       <div class="lrow"><span class="lc">Leadership</span><span class="lt"><b>Vice-Chair, SPECPOL</b> — Alphabet Model United Nations; committee named Best Committee for procedural rigor and debate quality.</span><span class="lv">Jan 2025</span></div>
-      <div class="lrow"><span class="lc">Competition</span><span class="lt"><b>National Finance Olympiad — National Finalist</b> — top of 50,000+ across financial literacy, investing, banking and macroeconomics.</span><span class="lv">2024–25</span></div>
-      <div class="lrow"><span class="lc">Experience</span><span class="lt"><b>Marketing Intern, Illumine Industries</b> — branding, market research, consumer behaviour and campaign development.</span><span class="lv">Apr–Jun 2024</span></div>
+      <div class="lrow"><span class="lc">Leadership</span><span class="lt"><b>Podcast Co-Editor</b> — the school podcast.</span><span class="lv">2025–26</span></div>
+      <div class="lrow"><span class="lc">Experience</span><span class="lt"><b>Bitcoin Bharat — workshop design &amp; simulation</b> — workshop formats for corporate employees and startup founders, built around the Bitcoin Desk Simulator.</span><span class="lv">Summer 2026</span></div>
+      <div class="lrow"><span class="lc">Experience</span><span class="lt"><b>Marketing Intern, Illumine Industries</b> — branding, market research, consumer behaviour and campaign development; exposure to customer acquisition, HR, finance and operations.</span><span class="lv">Apr–Jun 2024</span></div>
       <div class="lrow"><span class="lc">Service</span><span class="lt"><b>Christmas-in-a-Box</b> — founded an annual drive delivering 100+ supply kits (Prema Vasam; Asha Nivas via Bhumi NGO).</span><span class="lv">Since Dec 2024</span></div>
+      <div class="lrow"><span class="lc">Teaching</span><span class="lt"><b>Computer science workshops</b> — Introduction to Computer Science for Grades 3–4 and 5–6; a CPU/GPU architecture and parallel-computing seminar for ~35 Grade-8 students.</span><span class="lv">2024–26</span></div>
       <div class="lrow"><span class="lc">Service</span><span class="lt"><b>KSPCA animal-welfare fundraiser</b> — raised ₹20,000 via a Ketto crowdfunding campaign.</span><span class="lv">2022</span></div>
-      <div class="lrow"><span class="lc">Teaching</span><span class="lt"><b>CPU/GPU architecture seminar</b> — built and taught parallel-computing basics to ~35 Grade-8 students.</span><span class="lv">2024</span></div>
-      <div class="lrow"><span class="lc">Academics</span><span class="lt"><b>IB Diploma</b> — HL Economics, Business Management, Mathematics AI; SL Computer Science, English Lang &amp; Lit, Spanish Ab Initio. Previously Kodaikanal International School, cumulative 90%.</span><span class="lv">2023–27</span></div>
+      <div class="lrow"><span class="lc">Academics</span><span class="lt"><b>IB Diploma, Alphabet International School, Chennai</b> — HL Economics, Business Management, Mathematics AI; SL Computer Science, English Lang &amp; Lit, Spanish Ab Initio. Extended Essay in Economics. Previously Kodaikanal International School, cumulative 90%.</span><span class="lv">2023–27</span></div>
+      <div class="lrow"><span class="lc">Certificates</span><span class="lt"><b>Udemy — Python</b> · <b>Google Digital Garage — Digital Marketing</b> · <b>Trinity — Guitar Grade 2</b>.</span><span class="lv">2025–26</span></div>
       <div class="lrow"><span class="lc">Skills</span><span class="lt"><b>Python &amp; Excel</b> (intermediate), Canva (proficient) · English (fluent), Hindi &amp; Tamil (conversational), Spanish (beginner).</span><span class="lv">—</span></div>
     </div>
   </section>
 
-  <!-- ============ 11 MAP ============ -->
+  <!-- ============ §12 MAP ============ -->
   <section class="sec" id="map" data-code="MAP" data-title="The Map" data-light="night" data-cam="globe">
     <header class="sec-head">
-      <div class="sec-tag"><span class="sec-no">§11</span><span>The Map</span><button class="gochip" data-go="MAP">MAP &lt;GO&gt;</button></div>
+      <div class="sec-tag"><span class="sec-no">§12</span><span>The Map</span><button class="gochip" data-go="MAP">MAP &lt;GO&gt;</button></div>
       <h2 class="sec-title" data-split>Every society answers the same economic questions <em>differently.</em></h2>
     </header>
     <div class="map-body">
-      <p class="map-count" data-reveal><b id="pinCount">34</b> places · 4 countries <span class="map-hint">— drag the globe to spin it</span></p>
-      <div class="places" data-reveal>
-        <div><span>Gulf</span>Dubai · Abu Dhabi</div>
-        <div><span>Southeast Asia</span>Singapore · Indonesia</div>
-        <div><span>South India</span>Chennai · Madurai · Kodaikanal · Vattakanal · Dindigul · Salem · Karur · Trichy · Vellore · Poondi · Coimbatore · Pondicherry · Bangalore · Coorg · Mangalore · Kochi · Thiruvalla · Alappuzha · Palakkad</div>
-        <div><span>West &amp; North India</span>Mumbai · Pune · Lonavala · Lavasa · Mahabaleshwar · Kolhapur · Goa · Delhi · Gurgaon · Faridabad</div>
+      <p class="map-count" data-reveal><b id="pinCount">34</b> places · 4 countries <span class="map-hint">— click a pin on the globe, or a name below</span></p>
+      <div class="place-card" id="placeCard" aria-live="polite" data-reveal>
+        <span class="pc-k">On the globe</span>
+        <b id="placeName">Chennai</b>
+        <span id="placeMeta">South India · 13.08°N 80.27°E</span>
+        <p id="placeNote">Home base.</p>
       </div>
+      <div class="places" id="places" data-reveal></div>
       <p class="prose narrow" data-reveal>Travelling within India showed me how perspectives shift across languages and traditions — and the more I travelled, the more I saw that <b>each society answers the same economic questions differently.</b> Understanding why is what pulled me into economics.</p>
     </div>
   </section>
 
-  <!-- ============ 12 NEXT ============ -->
+  <!-- ============ §13 NEXT ============ -->
   <section class="sec" id="next" data-code="NEXT" data-title="What’s Next" data-light="night" data-cam="overview">
     <header class="sec-head">
-      <div class="sec-tag"><span class="sec-no">§12</span><span>What I’m Chasing Next</span><button class="gochip" data-go="NEXT">NEXT &lt;GO&gt;</button></div>
+      <div class="sec-tag"><span class="sec-no">§13</span><span>What I’m Chasing Next</span><button class="gochip" data-go="NEXT">NEXT &lt;GO&gt;</button></div>
       <h2 class="sec-title" data-split>Four questions I want to spend <em>real time on.</em></h2>
     </header>
     <ol class="qs" data-reveal>
@@ -589,34 +624,72 @@
     <p class="prose narrow" data-reveal>I don’t have the answers. I have the datasets, a method I trust, and the habit of throwing out my own first draft.</p>
   </section>
 
-  <!-- ============ 13 HUMAN / CONTACT ============ -->
-  <section class="sec sec-last" id="contact" data-code="CONT" data-title="The Human" data-light="midnight" data-cam="gift">
+  <!-- ============ §14 SERVICE ============ -->
+  <section class="sec" id="service" data-code="SERV" data-title="Service" data-light="midnight" data-cam="gift">
     <header class="sec-head">
-      <div class="sec-tag"><span class="sec-no">§13</span><span>The Human</span><button class="gochip" data-go="CONT">CONT &lt;GO&gt;</button></div>
-      <h2 class="sec-title" data-split>Off the <em>page.</em></h2>
+      <div class="sec-tag"><span class="sec-no">§14</span><span>Service — off the page</span><button class="gochip" data-go="SERV">SERV &lt;GO&gt;</button></div>
+      <h2 class="sec-title" data-split>The part of the year <em>I protect most.</em></h2>
     </header>
-    <div class="human">
-      <div class="prose" data-reveal>
-        <p>My parents were the first in their families to finish college, which is underneath everything I’ve built. I grew up guarding myself, and slowly learned that something you understand is worth nothing until someone else can use it — which is most of why I write, teach, and build.</p>
-        <p>Once a year I run a small drive that puts supply kits in the hands of kids who don’t have them. I’m wary of making that sound like more than it is, so I’ll just say it’s the part of the year I protect most.</p>
-      </div>
-      <div class="human-photos" data-reveal>
-        <img src="/media/christmas-box-kit.webp" width="700" height="933" alt="Handing a wrapped supply kit to a smiling child seated on the floor" loading="lazy" decoding="async" />
-        <img src="/media/christmas-box-group.webp" width="900" height="675" alt="The children and volunteers of the annual drive, gathered together" loading="lazy" decoding="async" />
-        <p class="tiny">Christmas-in-a-Box · 100+ kits · Chennai · annual since 2024</p>
-      </div>
+    <div class="prose narrow" data-reveal>
+      <p>My parents were the first in their families to finish college, which is underneath everything I’ve built. I grew up guarding myself, and slowly learned that something you understand is worth nothing until someone else can use it — which is most of why I write, teach, and build. Service is where that stops being an idea.</p>
     </div>
+    <div class="stories">
+      <article class="story story-lead" data-reveal>
+        <img src="/media/christmas-box-kit.webp" width="700" height="933" alt="Handing a wrapped supply kit to a smiling child seated on the floor" loading="lazy" decoding="async" />
+        <div>
+          <span class="act-k">Founder · since December 2024</span>
+          <h3>Christmas-in-a-Box</h3>
+          <p>Once a year I run a small drive that puts supply kits in the hands of kids who don’t have them — 100+ kits, packed by hand and handed over in person, starting at Prema Vasam. I’m wary of making that sound like more than it is, so I’ll just say it’s the part of the year I protect most.</p>
+        </div>
+      </article>
+      <article class="story" data-reveal>
+        <span class="act-k">With Bhumi NGO</span>
+        <h3>Asha Nivas</h3>
+        <p>Through Bhumi, the volunteer-run NGO, Christmas-in-a-Box reached the children at Asha Nivas too — the drive’s second home, and the first time it was carried by more hands than mine.</p>
+      </article>
+      <article class="story" data-reveal>
+        <span class="act-k">Teaching · volunteer</span>
+        <h3>Computer science workshops</h3>
+        <p><b>Introduction to Computer Science</b> for Grades 3–4 and 5–6, and before that a seminar on processor architecture and parallel computing for ~35 Grade-8 students. A student who understands how a machine thinks stops being afraid of it.</p>
+      </article>
+      <article class="story" data-reveal>
+        <span class="act-k">Earlier</span>
+        <h3>Books, and a fundraiser</h3>
+        <p>A books donation drive in Grade 10, and in 2022 a KSPCA animal-welfare campaign on Ketto that raised ₹20,000.</p>
+      </article>
+      <figure class="story-photo" data-reveal>
+        <img src="/media/christmas-box-group.webp" width="900" height="675" alt="The children and volunteers of the annual drive, gathered together" loading="lazy" decoding="async" />
+        <figcaption>Christmas-in-a-Box · Chennai · annual since 2024</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ============ §15 CONTACT ============ -->
+  <section class="sec sec-last" id="contact" data-code="CONT" data-title="Contact" data-light="midnight" data-cam="giftClose">
+    <header class="sec-head">
+      <div class="sec-tag"><span class="sec-no">§15</span><span>Contact</span><button class="gochip" data-go="CONT">CONT &lt;GO&gt;</button></div>
+      <h2 class="sec-title" data-split>Write to me. <em>I read everything.</em></h2>
+    </header>
     <div class="contact" data-reveal>
-      <p class="contact-k">Contact <i>·</i> CONT &lt;GO&gt;</p>
       <a class="contact-mail" href="mailto:zegenbalnathaniel@gmail.com" data-magnetic>zegenbalnathaniel@gmail.com</a>
+      <div class="qrs">
+        <a class="qr" href="https://www.linkedin.com/in/nathaniel-zegenbal-193a56351/" target="_blank" rel="noopener">
+          <img src="/qr/linkedin.svg" width="148" height="148" alt="QR code linking to Nathaniel Zegenbal on LinkedIn" />
+          <span><b>LinkedIn</b>scan, or tap ↗</span>
+        </a>
+        <a class="qr" href="https://nathanielzegenbal.substack.com/" target="_blank" rel="noopener">
+          <img src="/qr/substack.svg" width="148" height="148" alt="QR code linking to nathanielzegenbal.substack.com" />
+          <span><b>Substack</b>scan, or tap ↗</span>
+        </a>
+      </div>
       <div class="contact-links">
-        <a href="https://linkedin.com/in/nathaniel-zegenbal-193a56351" target="_blank" rel="noopener">LinkedIn ↗</a>
-        <a href="https://nathanielzegenbal.substack.com/" target="_blank" rel="noopener">Substack ↗</a>
+        <a href="https://the-financial-frontier-h9aw.vercel.app/" target="_blank" rel="noopener">The Financial Frontier ↗</a>
         <a href="https://github.com/zegenbalnathaniel-design" target="_blank" rel="noopener">GitHub ↗</a>
+        <button type="button" class="linkish" data-brief>The 90-second brief ↗</button>
       </div>
     </div>
     <footer class="foot">
-      <span>Nathaniel Zegenbal · Chennai · 23:59 IST and logging off</span>
+      <span>Nathaniel Jedidiah Zegenbal · Chennai · 23:59 IST and logging off</span>
       <span>Drawn in lines, built as evidence — not decoration.</span>
     </footer>
   </section>
@@ -626,24 +699,68 @@
 <!-- ================= 90-SECOND BRIEF ================= -->
 <div class="brief" id="brief" role="dialog" aria-modal="true" aria-labelledby="briefTitle" hidden>
   <div class="brief-bg" data-close></div>
-  <div class="brief-card">
-    <button class="brief-x" data-close aria-label="Close">×</button>
-    <p class="brief-k">BRIEF &lt;GO&gt; · for admissions officers</p>
-    <h2 id="briefTitle">Nathaniel Zegenbal — in 90 seconds</h2>
-    <p class="brief-s">Economics &amp; Finance · Chennai, India · IB Class of 2027</p>
-    <ol>
-      <li><b>Two independent research papers, both under peer review</b> — an original Bank Financial Performance Index tracing Fed rates through JPMorgan (2018–2024), and a three-stage mobility theory of Indian inequality with a proposed Capability-to-Ownership Index.</li>
-      <li><b>Top 10 of 15,000+ nationally (about 0.07%)</b> — sole founder of Edugate at the High School Startup League, pitched live to leading VCs and founders.</li>
-      <li><b>National Finance Olympiad finalist</b> — top of 50,000+ across financial literacy, investing and macroeconomics.</li>
-      <li><b>Builds and teaches</b> — founder-writer of a student economics newsletter; taught CPU/GPU architecture to 35 Grade-8 students; runs an annual 100+ kit donation drive.</li>
-      <li><b>Athlete</b> — school sprint champion (100/200/400m) and Best Athlete; CSK Academy U-16 cricket; 10Ks and two half-marathons; SDAT swim camp.</li>
-    </ol>
-    <div class="brief-jump">
-      <button data-go="OWN">See the research</button>
-      <button data-go="VNTR">See the ventures</button>
-      <button data-go="FAIL">See the failures</button>
+  <article class="brief-card">
+    <div class="brief-timer" aria-hidden="true"><i id="briefTimer"></i><span id="briefClock">90</span></div>
+    <header class="brief-head">
+      <p class="brief-k">BRIEF &lt;GO&gt; · 90 seconds · for admissions officers</p>
+      <h2 id="briefTitle">Nathaniel Jedidiah Zegenbal</h2>
+      <p class="brief-s">Economics &amp; Finance · Alphabet International School, Chennai · IB Diploma, Class of 2027</p>
+      <button class="brief-x" data-close aria-label="Close">×</button>
+    </header>
+    <div class="brief-stats">
+      <div><b>Top 10</b><span>of 10,000 · High School Startup League, India &amp; Middle East</span></div>
+      <div><b>2</b><span>independent research papers under peer review</span></div>
+      <div><b>R2</b><span>National Finance Olympiad finalist · field of 50,000+</span></div>
+      <div><b>100+</b><span>kits a year · Christmas-in-a-Box</span></div>
     </div>
-  </div>
+    <div class="brief-grid">
+      <section>
+        <h3>Research</h3>
+        <ul>
+          <li><b>Fed → JPMorgan, 2018–24.</b> An original Bank Financial Performance Index; core ρ = +0.722 with the rate, full index ρ = +0.111.</li>
+          <li><b>India’s ownership gap.</b> A three-stage mobility theory and a proposed Capability-to-Ownership Index.</li>
+          <li><b>Extended Essay.</b> Singapore’s pandemic budgets; an empirical multiplier ≈ 0.88.</li>
+          <li><b>India Economic Intelligence Lab.</b> Six labs that test both papers on Indian data.</li>
+        </ul>
+      </section>
+      <section>
+        <h3>Built</h3>
+        <ul>
+          <li><b>Edugate</b> — sole founder; HSSL top 10 of 10,000.</li>
+          <li><b>The Financial Frontier</b> — founder-writer of a bi-weekly student economics newsletter and its site.</li>
+          <li><b>Bitcoin Bharat</b> — workshop design and a trading simulation, summer 2026.</li>
+        </ul>
+      </section>
+      <section>
+        <h3>Service &amp; teaching</h3>
+        <ul>
+          <li><b>Christmas-in-a-Box</b> — founded; Prema Vasam and Asha Nivas (via Bhumi).</li>
+          <li><b>Computer science workshops</b> — Grades 3–6, and a CPU/GPU seminar for ~35 Grade-8s.</li>
+          <li><b>Podcast Co-Editor</b>; Vice-Chair, SPECPOL (MUN).</li>
+        </ul>
+      </section>
+      <section>
+        <h3>Athlete</h3>
+        <ul>
+          <li>School sprint champion (100/200/400m) and Best Athlete.</li>
+          <li>Cricket: Under-12 Pune and Under-16 Chennai district squads; CSK Academy U-16.</li>
+          <li>10Ks, two half-marathons; SDAT swim camp.</li>
+        </ul>
+      </section>
+    </div>
+    <footer class="brief-foot">
+      <div class="brief-jump">
+        <button data-go="RSRCH">The research</button>
+        <button data-go="LAB">The Lab</button>
+        <button data-go="VNTR">The ventures</button>
+        <button data-go="FAIL">The failures</button>
+      </div>
+      <div class="brief-out">
+        <a href="mailto:zegenbalnathaniel@gmail.com">zegenbalnathaniel@gmail.com</a>
+        <button type="button" id="briefPrint">Print / save PDF</button>
+      </div>
+    </footer>
+  </article>
 </div>
 
 <div class="cursor" id="cursor" aria-hidden="true"><i class="cursor-dot"></i><i class="cursor-ring"><b id="cursorLabel"></b></i></div>

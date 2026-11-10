@@ -10,13 +10,13 @@ export type Palette = { bg: RGB; accent: RGB; accentInk: RGB; ink: RGB; card: RG
 const hex = (h: string): RGB => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255) as RGB;
 
 const LIGHTS: Record<string, string> = {
-  dawn: "#EAE0CF",
-  morning: "#E7DDCB",
-  noon: "#E3D7C2",
-  afternoon: "#DCCCB1",
-  late: "#D1BD9E",
-  golden: "#C6AE8A",
-  dusk: "#B9A68A",
+  dawn: "#D8CBB3",
+  morning: "#D4C6AC",
+  noon: "#CFC0A4",
+  afternoon: "#C8B697",
+  late: "#BEAA89",
+  golden: "#B39C79",
+  dusk: "#A58D6D",
   evening: "#3A2C21",
   night: "#1D150F",
   midnight: "#17100B",
@@ -24,9 +24,11 @@ const LIGHTS: Record<string, string> = {
 
 const INK_DARK = hex("#24170F");
 const INK_LIGHT = hex("#E9DCC5");
-const ACC_DAY = hex("#C0642B");
+const ACC_DAY = hex("#A44A17");
 const ACC_NIGHT = hex("#D9813F");
-const ACC_INK_DAY = hex("#9A4A1C");
+const ACC_DUSK = hex("#7A2E10");
+const ACC_INK_DUSK = hex("#4A1E0B");
+const ACC_INK_DAY = hex("#86391A");
 const ACC_INK_NIGHT = hex("#E59456");
 const PAPER = hex("#FFF8EC");
 
@@ -64,15 +66,18 @@ export function paletteBetween(a: string, b: string, t: number): Palette {
   const bg = mixOk(LIGHT_OK[a] ?? LIGHT_OK.morning, LIGHT_OK[b] ?? LIGHT_OK.morning, t);
   const L = oklab(bg)[0];
   // 1 = night. The flip is steep around L ≈ 0.55.
-  const night = 1 - smooth(0.5, 0.6, L);
+  const night = 1 - smooth(0.46, 0.56, L);
   const ink = mixOk(INK_DARK, INK_LIGHT, night);
-  const card = mixOk(bg, PAPER, 0.34 * (1 - night) + 0.045 * night);
+  const card = mixOk(bg, PAPER, 0.4 * (1 - night) + 0.045 * night);
+  // As the daylight beige darkens toward dusk, the copper deepens with it so
+  // it keeps its contrast; after the flip it brightens for the dark page.
+  const dusk = Math.min(1, Math.max(0, (0.84 - L) / 0.2)) * (1 - night);
   return {
     bg,
     ink,
     card,
-    accent: mixOk(ACC_DAY, ACC_NIGHT, night),
-    accentInk: mixOk(ACC_INK_DAY, ACC_INK_NIGHT, night),
+    accent: mixOk(mixOk(ACC_DAY, ACC_DUSK, dusk), ACC_NIGHT, night),
+    accentInk: mixOk(mixOk(ACC_INK_DAY, ACC_INK_DUSK, dusk), ACC_INK_NIGHT, night),
     night,
   };
 }

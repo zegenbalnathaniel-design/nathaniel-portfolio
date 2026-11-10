@@ -52,7 +52,7 @@ export function initReveals(reduced: boolean) {
 
 /** A small dot and a ring; the ring opens on links and says DRAG over models you can turn. */
 export function initCursor() {
-  if (!matchMedia("(pointer: fine)").matches || matchMedia("(prefers-reduced-motion: reduce)").matches) return { setDrag: (_: boolean) => {} };
+  if (!matchMedia("(pointer: fine)").matches || matchMedia("(prefers-reduced-motion: reduce)").matches) return { setWorld: (_: "drag" | "open" | null) => {} };
   const root = document.getElementById("cursor")!;
   const dot = root.querySelector<HTMLElement>(".cursor-dot")!;
   const ring = root.querySelector<HTMLElement>(".cursor-ring")!;
@@ -82,9 +82,10 @@ export function initCursor() {
   });
 
   return {
-    setDrag(on: boolean) {
-      root.classList.toggle("is-drag", on);
-      label.textContent = on ? "DRAG" : "";
+    setWorld(kind: "drag" | "open" | null) {
+      root.classList.toggle("is-drag", kind === "drag");
+      root.classList.toggle("is-open", kind === "open");
+      label.textContent = kind === "drag" ? "DRAG" : kind === "open" ? "CLICK" : "";
     },
   };
 }

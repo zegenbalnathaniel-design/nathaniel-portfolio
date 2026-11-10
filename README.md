@@ -18,16 +18,18 @@ Deploys on Vercel as a static Vite site (`vercel.json`).
 
 | Piece | Where |
 | --- | --- |
-| Content (all copy, from portfolio v11) | `index.html` |
+| Content (all copy) | `index.html` |
 | Terminal login, real ticker facts, honest load progress | `src/boot.ts` |
-| Command bar: type a function, press `<GO>` | `src/cmdbar.ts`, `src/sections.ts` |
+| Top bar, ⌘K command palette, phone menu, progress | `src/nav.ts`, `src/sections.ts` |
 | Day-to-night palette, mixed in OKLab | `src/daylight.ts` |
-| Line renderer: silhouettes bright, creases dim, copper highlight | `src/world/pipeline.ts` |
-| The model table, one station per chapter | `src/world/stations.ts` |
-| Camera rail, hover, drag-to-spin, globe labels | `src/world/index.ts` |
-| Hairline figures (`@lucasmarkes/hairline`) | `src/figures.ts` |
-| Fig. 01, Rate Lab, fiscal and tax panels | `src/interactives.ts` |
+| Vision board as a working spreadsheet | `src/visionboard.ts`, `src/data/visionboard.ts` |
+| Line renderer: silhouettes, creases, clay shading, copper highlight | `src/world/pipeline.ts` |
+| The model table, one station per chapter, contact shadows | `src/world/stations.ts` |
+| Camera rail, hover tips, click-to-travel, bounce, clickable globe | `src/world/index.ts` |
+| Hairline figures (`@lucasmarkes/hairline`) drawn on the page | `src/figures.ts` |
+| Fig. 01, Rate Lab, fiscal and tax panels, the 90-second brief | `src/interactives.ts` |
 | Reveals, cursor | `src/motion.ts` |
+| Contact QR codes (regenerate with `node scripts/qr.mjs`) | `public/qr/` |
 
 Type: Instrument Serif, Schibsted Grotesk, IBM Plex Mono (self-hosted via Fontsource).
 Respects `prefers-reduced-motion`; works without WebGL (the drawing is simply absent).

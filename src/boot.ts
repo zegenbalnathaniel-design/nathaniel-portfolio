@@ -5,18 +5,18 @@
 import { gsap } from "gsap";
 
 export const TICKER: [string, string, string][] = [
-  ["EDGT", "HSSL TOP 10 / 15,000+", "≈0.07%"],
+  ["EDGT", "HSSL TOP 10 / 10,000", "INDIA + MIDDLE EAST"],
   ["BFPI", "CORE ρ +0.722", "FULL ρ +0.111"],
+  ["NFO", "ROUND 2 FINALIST", "50,000+ FIELD"],
   ["SG.FISC", "MULTIPLIER ≈ 0.88", "EE"],
-  ["NFO", "NATIONAL FINALIST", "50,000+ FIELD"],
+  ["IEIL", "6 LABS", "iBFPI · 5 BANKS"],
   ["TFF", "ISSUE 01 · JUN 2026", "30PP"],
   ["PAPERS", "UNDER PEER REVIEW", "×2"],
-  ["IEIL", "6 LABS", "iBFPI · 5 BANKS"],
+  ["XMAS.BOX", "100+ KITS", "PREMA VASAM · ASHA NIVAS"],
+  ["CS.WKSP", "GRADES 3–6", "+ CPU/GPU SEMINAR"],
   ["SPRINT", "100/200/400M", "1ST · BEST ATHLETE"],
+  ["CRICKET", "U-12 PUNE · U-16 CHENNAI", "DISTRICT"],
   ["DIST", "21K ×2", "42K PLANNED"],
-  ["XMAS.BOX", "100+ KITS", "SINCE 2024"],
-  ["TEACH", "CPU/GPU SEMINAR", "35 STUDENTS"],
-  ["KSPCA", "₹20,000 RAISED", "2022"],
 ];
 
 const IST = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Kolkata", day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
@@ -117,7 +117,7 @@ export function runBoot({ quick, reduced, progress, onExitStart }: BootOpts): Pr
       return exit();
     }
 
-    if (roomy) line('<span class="dim">NZ TERMINAL — PERSONAL RESEARCH SYSTEM · REL 12.0</span>');
+    if (roomy) line('<span class="dim">NZ TERMINAL — PERSONAL RESEARCH SYSTEM · REL 13.0</span>');
     line(`<span class="dim">CHENNAI NODE · 13.08°N 80.27°E${roomy ? ` · ${istNow()} IST` : ""}</span>`);
     line();
     await wait(260);
@@ -141,6 +141,7 @@ export function runBoot({ quick, reduced, progress, onExitStart }: BootOpts): Pr
     };
     await loadRow("RESEARCH", "BFPI · CAPABILITY-TO-OWNERSHIP", 240);
     await loadRow("VENTURES", "EDGT · TFF · BTC · IEIL · SUBS", 220);
+    await loadRow("SERVICE", "XMAS.BOX · ASHA NIVAS · CS.WKSP", 180);
 
     // The world line reports the actual scene progress.
     const w = line();

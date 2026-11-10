@@ -3,9 +3,9 @@
 // at once. Colours come from the --hairline-* properties daylight.ts writes,
 // so every figure's plate always matches the card it sits on.
 
-import { exploded, plot, riffle, terminal, terrain, vault, type Figure, type HairlineOptions } from "@lucasmarkes/hairline";
+import { exploded, hub, riffle, terminal, terrain, vault, type Figure, type HairlineOptions } from "@lucasmarkes/hairline";
 
-const MAKERS: Record<string, (el: HTMLElement, o?: HairlineOptions) => Figure> = { terrain, exploded, vault, terminal, plot, riffle };
+const MAKERS: Record<string, (el: HTMLElement, o?: HairlineOptions) => Figure> = { terrain, exploded, vault, terminal, hub, riffle };
 
 export function initFigures() {
   const hosts = Array.from(document.querySelectorAll<HTMLElement>(".hfig[data-figure]"));
@@ -16,7 +16,7 @@ export function initFigures() {
     if (live.has(el)) return;
     const make = MAKERS[el.dataset.figure!];
     if (!make) return;
-    const read = el.parentElement?.querySelector<HTMLElement>("[data-read]") ?? el.closest("figure")?.querySelector<HTMLElement>("[data-read]") ?? null;
+    const read = el.closest("figure")?.querySelector<HTMLElement>("[data-read]") ?? el.parentElement?.querySelector<HTMLElement>("[data-read]") ?? null;
     const fig = make(el, {
       intensity: 0.6,
       theme: theme(),
