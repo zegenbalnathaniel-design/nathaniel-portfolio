@@ -3,9 +3,9 @@
 // at once. Colours come from the --hairline-* properties daylight.ts writes,
 // so every figure's plate always matches the card it sits on.
 
-import { exploded, hub, riffle, terminal, terrain, vault, type Figure, type HairlineOptions } from "@lucasmarkes/hairline";
+import { exploded, hub, riffle, terminal, terrain, turntable, vault, type Figure, type HairlineOptions } from "@lucasmarkes/hairline";
 
-const MAKERS: Record<string, (el: HTMLElement, o?: HairlineOptions) => Figure> = { terrain, exploded, vault, terminal, hub, riffle };
+const MAKERS: Record<string, (el: HTMLElement, o?: HairlineOptions) => Figure> = { terrain, exploded, vault, terminal, hub, riffle, turntable };
 
 export function initFigures() {
   const hosts = Array.from(document.querySelectorAll<HTMLElement>(".hfig[data-figure]"));

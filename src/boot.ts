@@ -13,7 +13,9 @@ export const TICKER: [string, string, string][] = [
   ["TFF", "ISSUE 01 · JUN 2026", "30PP"],
   ["PAPERS", "UNDER PEER REVIEW", "×2"],
   ["XMAS.BOX", "100+ KITS", "PREMA VASAM · ASHA NIVAS"],
-  ["CS.WKSP", "GRADES 3–6", "+ CPU/GPU SEMINAR"],
+  ["CS.WKSP", "CPU/GPU ARCHITECTURE", "35 STUDENTS"],
+  ["CINE", "19 FILMS · 8 LESSONS", "VOL. 001"],
+  ["MUSIC", "PINK FLOYD", "SIDE A"],
   ["SPRINT", "100/200/400M", "1ST · BEST ATHLETE"],
   ["CRICKET", "U-12 PUNE · U-16 CHENNAI", "DISTRICT"],
   ["DIST", "21K ×2", "42K PLANNED"],
@@ -142,6 +144,7 @@ export function runBoot({ quick, reduced, progress, onExitStart }: BootOpts): Pr
     await loadRow("RESEARCH", "BFPI · CAPABILITY-TO-OWNERSHIP", 240);
     await loadRow("VENTURES", "EDGT · TFF · BTC · IEIL · SUBS", 220);
     await loadRow("SERVICE", "XMAS.BOX · ASHA NIVAS · CS.WKSP", 180);
+    await loadRow("ARCHIVE", "CINEMA · MUSIC · LETTERBOXD", 150);
 
     // The world line reports the actual scene progress.
     const w = line();

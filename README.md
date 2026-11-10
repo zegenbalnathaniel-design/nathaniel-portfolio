@@ -26,6 +26,7 @@ Deploys on Vercel as a static Vite site (`vercel.json`).
 | Line renderer: silhouettes, creases, clay shading, copper highlight | `src/world/pipeline.ts` |
 | The model table, one station per chapter, contact shadows | `src/world/stations.ts` |
 | Camera rail, hover tips, click-to-travel, bounce, clickable globe | `src/world/index.ts` |
+| The Cinematic Mind: the Memory Projector, film strip, archive | `src/cinema.ts`, `src/data/films.ts` |
 | Hairline figures (`@lucasmarkes/hairline`) drawn on the page | `src/figures.ts` |
 | Fig. 01, Rate Lab, fiscal and tax panels, the 90-second brief | `src/interactives.ts` |
 | Reveals, cursor | `src/motion.ts` |

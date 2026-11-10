@@ -567,8 +567,70 @@ export function buildWorld(onStep: (p: number) => void): WorldParts {
   finish(shelf);
   stations.push(shelf); step();
 
+  // ---- 10b CINEMA: a screen, the rows of seats, and a projector at the back
+  const cinema = station("cinema", 202, -12, { h: 13, az: 44, el: 26, dx: 0.4, sx: -0.34 });
+  {
+    const g = cinema.group;
+    plinth(g, 7.2, 6.2, 0.25);
+    const sid = newId();
+    // the screen, standing at the far end, a thin slab with a frame
+    box(g, sid, 5.6, 3.2, 0.14, 0, 0.25, -2.6);
+    box(g, sid, 0.18, 3.5, 0.3, -2.85, 0.25, -2.6);
+    box(g, sid, 0.18, 3.5, 0.3, 2.85, 0.25, -2.6);
+    box(g, sid, 5.9, 0.16, 0.3, 0, 3.6, -2.6);
+    // seats: four rows of six, each a seat and a back
+    const cid = newId();
+    for (let r = 0; r < 4; r++) for (let c = 0; c < 6; c++) {
+      const x = -2.15 + c * 0.86, z = -1.0 + r * 0.9;
+      box(g, cid, 0.62, 0.3, 0.6, x, 0.25, z);
+      box(g, cid, 0.62, 0.62, 0.14, x, 0.25, z + 0.24);
+    }
+    // the aisle, a dashed line down the middle; the beam, three lines from the projector to the screen
+    segs(g, [0, 0.27, -1.4, 0, 0.27, 2.0], M.inkSoft, true);
+    const pid = newId();
+    cyl(g, pid, 0.1, 1.5, 0, 0.25, 2.6, 12);
+    box(g, pid, 0.8, 0.5, 1.0, 0, 1.75, 2.6);
+    cyl(g, pid, 0.16, 0.3, 0, 1.85, 2.0, 16).rotation.x = Math.PI / 2;
+    segs(g, [0, 2.0, 1.95, -2.6, 2.6, -2.5, 0, 2.0, 1.95, 2.6, 2.6, -2.5, 0, 2.0, 1.95, 0, 1.0, -2.5], M.accentSoft, true);
+    cinema.restLit = sid;
+  }
+  finish(cinema);
+  stations.push(cinema); step();
+
+  // ---- 10c MUSIC: a record player, the platter turning
+  const music = station("music", 220, -2, { h: 9, az: 36, el: 36, sx: -0.34 });
+  {
+    const g = music.group, id = newId();
+    plinth(g, 4.6, 3.8, 0.25);
+    box(g, id, 3.6, 0.5, 2.8, 0, 0.25, 0);
+    // the platter and the record on it turn together
+    const rid = newId();
+    const platter = new Group(); platter.position.set(-0.45, 0.75, 0); g.add(platter);
+    cyl(platter, rid, 1.12, 0.1, 0, 0, 0, 56);
+    cyl(platter, rid, 1.0, 0.03, 0, 0.1, 0, 56);
+    cyl(platter, rid, 0.06, 0.32, 0, 0.1, 0, 10);
+    // grooves and the label, with a tick so the turn can be seen
+    for (const r of [0.42, 0.6, 0.78, 0.93]) poly(platter, circle(0, 0, r, 0.135, 64), M.inkSoft);
+    poly(platter, circle(0, 0, 0.3, 0.135, 40), M.accent);
+    segs(platter, [0.3, 0.14, 0, 0.98, 0.14, 0], M.accent);
+    music.spinners.push({ obj: platter, id: rid, angle: 0, vel: 0, idle: 0.9, axis: "y", bx: 0, bv: 0, name: "The turntable" });
+    // the tonearm, pivoting at the back-right corner and resting over the record
+    const arm = new Group(); arm.position.set(1.3, 0.75, -0.95); arm.rotation.y = 0.62; g.add(arm);
+    cyl(arm, id, 0.2, 0.3, 0, 0, 0, 20);
+    const a = box(arm, id, 0.08, 0.08, 1.9, 0, 0.26, 0.95);
+    a.rotation.x = 0.0;
+    box(arm, id, 0.16, 0.1, 0.34, 0, 0.2, 1.85);
+    // two knobs and a speed switch
+    cyl(g, id, 0.12, 0.08, 1.3, 0.75, 0.75, 16);
+    cyl(g, id, 0.12, 0.08, 1.3, 0.75, 1.05, 16);
+    box(g, id, 0.3, 0.06, 0.12, 1.0, 0.75, 1.1);
+    music.restLit = rid;
+  }
+  finish(music);
+  stations.push(music); step();
+
   // ---- 10 RECORD: an open ledger, ruled
-  const ledger = station("ledger", 200, -16, { h: 9, az: 36, el: 38 });
+  const ledger = station("ledger", 236, -16, { h: 9, az: 36, el: 38 });
   {
     const g = ledger.group, id = newId();
     plinth(g, 4.8, 3.6, 0.25);
@@ -589,7 +651,7 @@ export function buildWorld(onStep: (p: number) => void): WorldParts {
 
   // ---- 11 MAP: a globe on a stand, coastlines and the places that taught me
   const R = 4;
-  const globeSt = station("globe", 222, -6, { h: 15, az: 44, el: 20, dy: 5.4 });
+  const globeSt = station("globe", 258, -6, { h: 15, az: 44, el: 20, dy: 5.4 });
   const sphereHolder = new Group();
   const labels: { name: string; local: Vector3 }[] = [];
   const pinData: { place: Place; local: Vector3 }[] = [];
@@ -638,7 +700,7 @@ export function buildWorld(onStep: (p: number) => void): WorldParts {
   stations.push(globeSt); step();
 
   // ---- 13 CONTACT: a gift box — Christmas-in-a-Box
-  const gift = station("gift", 264, -6, { h: 9.5, az: 40, el: 30, dy: 1.4 });
+  const gift = station("gift", 300, -6, { h: 9.5, az: 40, el: 30, dy: 1.4 });
   {
     const g = gift.group;
     plinth(g, 4.6, 4.6, 0.3);

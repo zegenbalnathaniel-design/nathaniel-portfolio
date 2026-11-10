@@ -526,3 +526,148 @@ html.motion .sec { --draw: 0; }
 @media (max-width: 860px) { .world-labels { display: none; } }
 .world-labels span.sel { color: var(--bg); background: var(--accent); padding: 2px 6px; font-weight: 500; }
 .world-labels span.sel::before { display: none; }
+
+/* ==========================================================================
+   §11 The Cinematic Mind — the Memory Projector
+   ========================================================================== */
+.sec-cinema .prose a, .arc-note a, .review a { color: var(--accent); text-decoration: none; border-bottom: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); }
+.projector-wrap { margin-top: clamp(30px, 5vh, 48px); max-width: min(1080px, 100%) !important; }
+.proj-hint { font-family: var(--f-mono); font-size: 11px; letter-spacing: .08em; color: var(--ink-2); margin-bottom: 14px; max-width: 70ch; }
+.proj-hint span { text-transform: uppercase; letter-spacing: .16em; color: var(--accent-ink); }
+.projector {
+  position: relative; container-type: inline-size; aspect-ratio: 1000 / 400; width: 100%;
+  background: color-mix(in srgb, var(--card) 92%, #000); border: 1px solid var(--rule); overflow: hidden;
+  --near: 0;
+}
+.projector::after { /* the plate's registration corners */
+  content: ""; position: absolute; inset: 8px; pointer-events: none;
+  background:
+    linear-gradient(var(--ink-3), var(--ink-3)) left top / 9px 1px no-repeat,
+    linear-gradient(var(--ink-3), var(--ink-3)) left top / 1px 9px no-repeat,
+    linear-gradient(var(--ink-3), var(--ink-3)) right bottom / 9px 1px no-repeat,
+    linear-gradient(var(--ink-3), var(--ink-3)) right bottom / 1px 9px no-repeat;
+}
+.proj-svg { position: absolute; inset: 0; width: 100%; height: 100%; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.proj-svg .i { stroke: var(--ink); stroke-width: 1.3; vector-effect: non-scaling-stroke; }
+.proj-svg .s { stroke: var(--ink-3); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.proj-svg .h { stroke: var(--ink-3); stroke-width: 1; stroke-dasharray: 3 4; vector-effect: non-scaling-stroke; }
+.proj-svg .a { stroke: var(--accent); stroke-width: 1.3; vector-effect: non-scaling-stroke; }
+.proj-svg .f { stroke: var(--accent); stroke-width: 2.2; opacity: .8; vector-effect: non-scaling-stroke; }
+.proj-svg .reel circle.a { fill: var(--card); }
+.proj-svg .beam { fill: var(--accent); opacity: 0; transition: opacity .6s var(--ease-out); }
+.proj-svg .beam-core { stroke: var(--accent); stroke-width: 1; stroke-dasharray: 2 6; opacity: calc(.25 + var(--near) * .4); vector-effect: non-scaling-stroke; }
+.proj-svg .screen { stroke: var(--ink); stroke-width: 1.3; fill: color-mix(in srgb, var(--bg) 60%, #000 20%); transition: fill .6s; vector-effect: non-scaling-stroke; }
+.projector.lit .beam { opacity: .13; animation: beam-flicker 2.4s infinite; }
+.projector.lit .screen { fill: color-mix(in srgb, var(--card) 85%, #fff 8%); }
+@keyframes beam-flicker { 0%, 100% { opacity: .13; } 37% { opacity: .17; } 52% { opacity: .11; } 71% { opacity: .16; } }
+.proj-screen {
+  position: absolute; left: 56%; top: 9%; width: 40%; height: 62.5%; padding: 3.2cqw 3cqw; box-sizing: border-box;
+  display: grid; align-content: center; gap: .6cqw; text-align: center; pointer-events: none;
+  color: var(--ink-3); transition: color .5s;
+}
+.projector.lit .proj-screen { color: var(--ink); }
+.proj-screen .ps-k { font-family: var(--f-mono); font-size: clamp(8px, 1.1cqw, 11px); letter-spacing: .16em; text-transform: uppercase; color: var(--accent-ink); }
+.proj-screen b { font-family: var(--f-display); font-weight: 400; font-size: clamp(14px, 3.2cqw, 34px); line-height: 1.02; letter-spacing: -.01em; text-wrap: balance; }
+.proj-screen .ps-meta { font-family: var(--f-mono); font-size: clamp(8px, 1.15cqw, 12px); letter-spacing: .06em; color: var(--ink-2); }
+.proj-screen p { font-family: var(--f-display); font-style: italic; font-size: clamp(10px, 1.7cqw, 18px); line-height: 1.25; color: var(--ink-2); margin-top: .4cqw; }
+.proj-screen p:empty { display: none; }
+.proj-screen.flick b { animation: screen-flick .5s steps(1) 1; }
+@keyframes screen-flick { 0% { opacity: 0; } 35% { opacity: 1; } 50% { opacity: .25; } 65% { opacity: 1; } }
+
+/* the film strip: sprocket holes top and bottom, frames sliding through */
+.strip-wrap {
+  position: relative; overflow: hidden; margin-top: -1px; border: 1px solid var(--rule); border-top: 0;
+  background: color-mix(in srgb, var(--ink) 92%, var(--card));
+  padding: 14px 0 14px; cursor: crosshair;
+  --hole: color-mix(in srgb, var(--bg) 85%, #fff 10%);
+}
+.strip-wrap::before, .strip-wrap::after {
+  content: ""; position: absolute; left: 0; right: 0; height: 6px; pointer-events: none;
+  background: repeating-linear-gradient(90deg, transparent 0 6px, var(--hole) 6px 14px, transparent 14px 22px);
+}
+.strip-wrap::before { top: 4px; }
+.strip-wrap::after { bottom: 4px; }
+.strip { display: flex; gap: 10px; width: max-content; will-change: transform; padding-left: 10px; }
+.strip-wrap.still .strip { width: auto; flex-wrap: wrap; row-gap: 10px; padding: 4px 10px; transform: none !important; }
+.strip-wrap.still .strip .frame:nth-child(n + 20) { display: none; }
+.frame {
+  position: relative; flex: 0 0 auto; width: 96px; aspect-ratio: 4 / 3; padding: 0; border: 1px solid color-mix(in srgb, var(--bg) 40%, transparent);
+  background: color-mix(in srgb, var(--bg) 92%, #000); cursor: pointer; color: var(--ink);
+  transition: transform .45s var(--ease-spring), border-color .3s, box-shadow .45s;
+}
+.frame svg { position: absolute; inset: 0; width: 100%; height: 100%; fill: none; stroke-linecap: round; }
+.frame svg .i { stroke: var(--ink); stroke-width: 1.1; vector-effect: non-scaling-stroke; }
+.frame svg .a { stroke: var(--accent); stroke-width: 1.3; vector-effect: non-scaling-stroke; }
+.frame .fr-no, .frame .fr-y { position: absolute; font-family: var(--f-mono); font-size: 8.5px; letter-spacing: .1em; color: var(--ink-3); }
+.frame .fr-no { left: 5px; top: 3px; }
+.frame .fr-y { right: 5px; bottom: 3px; }
+.frame:hover, .frame:focus-visible, .frame.sel { transform: translateY(-9px) scale(1.06); border-color: var(--accent); box-shadow: 0 18px 30px -16px rgba(0,0,0,.8); outline: none; z-index: 2; }
+.frame.sel .fr-y { color: var(--accent); }
+.proj-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; margin-top: 18px; border-top: 1px solid var(--rule); }
+.proj-stats div { padding: 14px 0 0; }
+.proj-stats b { display: block; font-family: var(--f-display); font-weight: 400; font-size: clamp(1.9rem, 3vw, 2.8rem); line-height: 1; letter-spacing: -.02em; }
+.proj-stats span { display: block; margin-top: 6px; font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
+
+/* the archive: typographic title cards instead of posters */
+.arc-h { margin-top: clamp(44px, 7vh, 72px); font-family: var(--f-mono); font-weight: 400; font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--accent-ink); }
+.archive { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 10px; margin-top: 16px; max-width: min(1080px, 100%) !important; }
+.card {
+  position: relative; display: grid; grid-template-rows: auto auto 1fr auto auto; gap: 6px; align-items: start; text-align: left;
+  aspect-ratio: 2 / 3; padding: 10px 11px 12px; border: 1px solid var(--rule-2); border-top: 3px solid var(--ink-3);
+  background: var(--card); color: var(--ink); cursor: pointer;
+  transition: transform .5s var(--ease-spring), border-color .3s, background .3s;
+}
+.card.core { border-top-color: var(--accent); }
+.card:hover, .card:focus-visible { transform: translateY(-6px) rotate(-.5deg); border-color: var(--accent); outline: none; }
+.card[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.card svg { width: 100%; height: auto; fill: none; stroke-linecap: round; }
+.card svg .i { stroke: var(--ink-2); stroke-width: 1.1; vector-effect: non-scaling-stroke; }
+.card svg .a { stroke: var(--accent); stroke-width: 1.3; vector-effect: non-scaling-stroke; }
+.card .cd-no { font-family: var(--f-mono); font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); }
+.card.core .cd-no { color: var(--accent-ink); }
+.card b { font-family: var(--f-display); font-weight: 400; font-size: clamp(1.05rem, 1.4vw, 1.3rem); line-height: 1.02; letter-spacing: -.01em; align-self: end; }
+.card .cd-meta { font-family: var(--f-mono); font-size: 9.5px; color: var(--ink-2); line-height: 1.3; }
+.card .cd-tag { justify-self: start; margin-top: 2px; padding: 2px 6px; font-family: var(--f-mono); font-size: 8.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--accent-ink); border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); }
+.review { margin-top: 18px; padding: 20px 22px 22px; border: 1px solid var(--rule); border-left: 2px solid var(--accent); background: var(--card); max-width: min(1080px, 100%) !important; display: grid; gap: 6px; }
+.review b { font-family: var(--f-display); font-weight: 400; font-size: clamp(1.6rem, 2.4vw, 2.2rem); line-height: 1.04; }
+.review .rv-meta { font-family: var(--f-mono); font-size: 11px; color: var(--ink-2); }
+.review .rv-k { margin-top: 10px; font-family: var(--f-mono); font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent-ink); }
+.review p { font-family: var(--f-display); font-size: clamp(1.25rem, 1.8vw, 1.6rem); line-height: 1.3; max-width: 44ch; }
+.arc-note { margin-top: 22px; font-family: var(--f-mono); font-size: 11px; letter-spacing: .06em; color: var(--ink-2); }
+
+/* ==========================================================================
+   §12 The Listening Room
+   ========================================================================== */
+.listen { display: grid; grid-template-columns: minmax(240px, 380px) 1fr; gap: clamp(20px, 3vw, 40px); align-items: start; margin-top: clamp(30px, 5vh, 48px); max-width: min(1080px, 100%) !important; }
+.listen-fig .hfig { aspect-ratio: 1; }
+.sleeves { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.sleeve { position: relative; padding: 16px 16px 18px; border: 1px solid var(--rule-2); border-top: 3px solid var(--ink-3); background: var(--card); transition: transform .5s var(--ease-spring), border-color .3s; }
+.sleeve:hover { transform: translateY(-5px) rotate(-.5deg); border-color: var(--accent); }
+.sleeve-lead { grid-column: 1 / -1; border-top-color: var(--accent); display: grid; grid-template-columns: 1fr auto; grid-template-areas: "k k" "h m" "p p" "l l"; column-gap: 20px; align-items: baseline; }
+.sleeve-lead .sl-k { grid-area: k; } .sleeve-lead h3 { grid-area: h; } .sleeve-lead .sl-meta { grid-area: m; } .sleeve-lead p { grid-area: p; } .sleeve-lead .sl-links { grid-area: l; }
+.sleeve .sl-k { display: block; font-family: var(--f-mono); font-size: 9.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent-ink); }
+.sleeve h3 { margin-top: 8px; font-family: var(--f-display); font-weight: 400; font-size: clamp(1.5rem, 2.2vw, 2rem); line-height: 1.02; letter-spacing: -.01em; }
+.sleeve-lead h3 { font-size: clamp(2.4rem, 4vw, 3.6rem); }
+.sleeve .sl-meta { display: block; margin-top: 6px; font-family: var(--f-mono); font-size: 10.5px; color: var(--ink-2); }
+.sleeve p { margin-top: 12px; font-size: 15.5px; line-height: 1.6; max-width: 52ch; }
+.sleeve .sl-links { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 14px; }
+.sleeve .sl-links a { font-family: var(--f-mono); font-size: 11px; letter-spacing: .06em; color: var(--accent); text-decoration: none; border-bottom: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); }
+.sleeve .sl-links a:hover { color: var(--ink); border-color: var(--ink); }
+
+@media (max-width: 900px) {
+  .listen { grid-template-columns: 1fr; }
+  .listen-fig { max-width: 380px; }
+}
+@media (max-width: 640px) {
+  /* on a phone the drawing keeps its shape and the screen's text drops beneath it, like a subtitle card */
+  .projector { aspect-ratio: auto; }
+  .proj-svg { position: relative; display: block; aspect-ratio: 1000 / 400; height: auto; }
+  .proj-screen { position: static; width: auto; height: auto; min-height: 118px; padding: 14px 16px 16px; text-align: left; border-top: 1px solid var(--rule); gap: 4px; }
+  .proj-screen .ps-k { font-size: 9px; }
+  .proj-screen b { font-size: 22px; }
+  .proj-screen .ps-meta { font-size: 10.5px; }
+  .proj-screen p { font-size: 15px; margin-top: 2px; }
+  .sleeves { grid-template-columns: 1fr; }
+  .archive { grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 8px; }
+  .proj-stats b { font-size: 1.6rem; }
+}

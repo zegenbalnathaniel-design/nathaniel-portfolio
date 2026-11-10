@@ -156,7 +156,7 @@ export class LinePipeline {
           // Paper: a faint light falloff, warm by day, a cooler pool by night.
           vec2 q = vUv - vec2(0.62, 0.55);
           float glow = 1.0 - smoothstep(0.0, 0.9, length(q * vec2(1.0, 1.25)));
-          vec3 paper = uBg * (1.0 + mix(0.035, 0.09, uNight) * glow - mix(0.025, 0.0, uNight) * (1.0 - glow));
+          vec3 paper = uBg * (1.0 + mix(0.035, 0.09, uNight) * glow - mix(0.075, 0.04, uNight) * (1.0 - glow));
 
           // Clay shading of the solids (ground and background stay flat paper).
           if (c0.a > 0.5 / 255.0) {
@@ -192,7 +192,7 @@ export class LinePipeline {
         void main() {
           vec2 q = vUv - vec2(0.62, 0.55);
           float glow = 1.0 - smoothstep(0.0, 0.9, length(q * vec2(1.0, 1.25)));
-          vec3 paper = uBg * (1.0 + mix(0.035, 0.09, uNight) * glow - mix(0.025, 0.0, uNight) * (1.0 - glow));
+          vec3 paper = uBg * (1.0 + mix(0.035, 0.09, uNight) * glow - mix(0.075, 0.04, uNight) * (1.0 - glow));
           float keep = mix(uCol.z, 1.0, smoothstep(uCol.x - uCol.y * 0.4, uCol.x + uCol.y, vUv.x));
           gl_FragColor = vec4(paper, 1.0 - keep);
         }`,

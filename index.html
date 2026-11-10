@@ -53,6 +53,7 @@
     <a href="#ventures" data-go="VNTR" data-group="ventures">Ventures</a>
     <a href="#newsletter" data-go="TFF" data-group="writing">Writing</a>
     <a href="#athletics" data-go="ATHL" data-group="life">Life</a>
+    <a href="#cinema" data-go="CINE" data-group="archive">Archive</a>
     <a href="#service" data-go="SERV" data-group="service">Service</a>
     <a href="#contact" data-go="CONT" data-group="contact">Contact</a>
   </nav>
@@ -568,10 +569,84 @@
     <p class="prose narrow shelf-note" data-reveal>Piketty and the Inequality Report grounded my ownership research; Kelton and Friedman argue with each other whenever I write about policy; The Economist arrives weekly and anchors the newsletter. I keep authors I disagree with on the shelf on purpose.</p>
   </section>
 
-  <!-- ============ §11 RECORD ============ -->
+  <!-- ============ §11 CINEMA ============ -->
+  <section class="sec sec-cinema" id="cinema" data-code="CINE" data-title="The Cinematic Mind" data-light="evening" data-cam="cinema">
+    <header class="sec-head">
+      <div class="sec-tag"><span class="sec-no">§11</span><span>Personal archive · Vol. 001 — Cinema</span><button class="gochip" data-go="CINE">CINE &lt;GO&gt;</button></div>
+      <h2 class="sec-title" data-split>Cinema is how I <em>understand people.</em></h2>
+    </header>
+    <p class="prose narrow" data-reveal>A collection of stories, characters and ideas that have stayed with me long after the credits rolled. Nineteen films; eight lessons I can put into words. The rest are still teaching me.</p>
+
+    <div class="projector-wrap" data-reveal>
+      <p class="proj-hint"><span>The Memory Projector</span> — bring the cursor near and the reels wind up · hover a frame to project it · click to read what it left me</p>
+      <div class="projector" id="projector">
+        <div class="proj-screen" id="projScreen" aria-live="polite">
+          <span class="ps-k" id="psK">No film selected</span>
+          <b id="psTitle">Hover a frame</b>
+          <span class="ps-meta" id="psMeta">or click a card below</span>
+          <p id="psLesson"></p>
+        </div>
+      </div>
+      <div class="strip-wrap" id="stripWrap"><div class="strip" id="strip"></div></div>
+      <div class="proj-stats">
+        <div><b id="statFilms">019</b><span>Films in the archive</span></div>
+        <div><b id="statLessons">08</b><span>Lessons I can name</span></div>
+        <div><b>∞</b><span>Stories to discover</span></div>
+      </div>
+    </div>
+
+    <h3 class="arc-h" data-reveal>A few that stayed with me</h3>
+    <div class="archive" id="archive" data-reveal></div>
+    <div class="review" id="review" hidden></div>
+    <p class="arc-note" data-reveal>An incomplete collection, by design. The whole diary is on <a href="https://letterboxd.com/the_realzeg/" target="_blank" rel="noopener">Letterboxd ↗</a>.</p>
+  </section>
+
+  <!-- ============ §12 MUSIC ============ -->
+  <section class="sec sec-music" id="music" data-code="MUSIC" data-title="The Listening Room" data-light="evening" data-cam="music">
+    <header class="sec-head">
+      <div class="sec-tag"><span class="sec-no">§12</span><span>Personal archive · Vol. 002 — Music</span><button class="gochip" data-go="MUSIC">MUSIC &lt;GO&gt;</button></div>
+      <h2 class="sec-title" data-split>Pink Floyd first. <em>Then everyone else.</em></h2>
+    </header>
+    <p class="prose narrow" data-reveal>Pink Floyd is the band I write about. Oasis, the Rolling Stones and Joe Cocker are the rest of the rotation — the records that are on when the economics is not.</p>
+    <div class="listen">
+      <figure class="fig-stage listen-fig" data-reveal>
+        <div class="hfig" data-figure="turntable" data-label="Blocks on a turntable; a flick across it spins it, and it settles on the nearest quarter turn"></div>
+        <figcaption class="annot"><i></i><span>Turntable</span><em>flick to spin · it settles on the quarter turn</em><b class="readout" data-read>rest</b></figcaption>
+      </figure>
+      <div class="sleeves" data-reveal>
+        <article class="sleeve sleeve-lead">
+          <span class="sl-k">Side A · the one I write about</span>
+          <h3>Pink Floyd</h3>
+          <span class="sl-meta">London · formed 1965</span>
+          <p>The band I keep returning to, and the one I have actually sat down and written about. The essay is on Substack.</p>
+          <div class="sl-links"><a href="https://nathanielzegenbal.substack.com/" target="_blank" rel="noopener">Read it on Substack ↗</a><a href="https://open.spotify.com/search/Pink%20Floyd" target="_blank" rel="noopener">Spotify ↗</a></div>
+        </article>
+        <article class="sleeve">
+          <span class="sl-k">Side B · 01</span>
+          <h3>Oasis</h3>
+          <span class="sl-meta">Manchester · 1991</span>
+          <div class="sl-links"><a href="https://open.spotify.com/search/Oasis" target="_blank" rel="noopener">Spotify ↗</a></div>
+        </article>
+        <article class="sleeve">
+          <span class="sl-k">Side B · 02</span>
+          <h3>The Rolling Stones</h3>
+          <span class="sl-meta">London · 1962</span>
+          <div class="sl-links"><a href="https://open.spotify.com/search/The%20Rolling%20Stones" target="_blank" rel="noopener">Spotify ↗</a></div>
+        </article>
+        <article class="sleeve">
+          <span class="sl-k">Side B · 03</span>
+          <h3>Joe Cocker</h3>
+          <span class="sl-meta">Sheffield · 1944–2014</span>
+          <div class="sl-links"><a href="https://open.spotify.com/search/Joe%20Cocker" target="_blank" rel="noopener">Spotify ↗</a></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ §13 RECORD ============ -->
   <section class="sec" id="record" data-code="REC" data-title="The Record" data-light="evening" data-cam="ledger">
     <header class="sec-head">
-      <div class="sec-tag"><span class="sec-no">§11</span><span>The Record</span><button class="gochip" data-go="REC">REC &lt;GO&gt;</button></div>
+      <div class="sec-tag"><span class="sec-no">§13</span><span>The Record</span><button class="gochip" data-go="REC">REC &lt;GO&gt;</button></div>
       <h2 class="sec-title" data-split>Everything else, <em>on one ledger.</em></h2>
     </header>
     <div class="ledger" data-reveal>
@@ -582,7 +657,7 @@
       <div class="lrow"><span class="lc">Experience</span><span class="lt"><b>Bitcoin Bharat — workshop design &amp; simulation</b> — workshop formats for corporate employees and startup founders, built around the Bitcoin Desk Simulator.</span><span class="lv">Summer 2026</span></div>
       <div class="lrow"><span class="lc">Experience</span><span class="lt"><b>Marketing Intern, Illumine Industries</b> — branding, market research, consumer behaviour and campaign development; exposure to customer acquisition, HR, finance and operations.</span><span class="lv">Apr–Jun 2024</span></div>
       <div class="lrow"><span class="lc">Service</span><span class="lt"><b>Christmas-in-a-Box</b> — founded an annual drive delivering 100+ supply kits (Prema Vasam; Asha Nivas via Bhumi NGO).</span><span class="lv">Since Dec 2024</span></div>
-      <div class="lrow"><span class="lc">Teaching</span><span class="lt"><b>Computer science workshops</b> — Introduction to Computer Science for Grades 3–4 and 5–6; a CPU/GPU architecture and parallel-computing seminar for ~35 Grade-8 students.</span><span class="lv">2024–26</span></div>
+      <div class="lrow"><span class="lc">Teaching</span><span class="lt"><b>Computer science workshop</b> — built and taught how processors work: CPU/GPU architecture and parallel computing, for ~35 students.</span><span class="lv">2024</span></div>
       <div class="lrow"><span class="lc">Service</span><span class="lt"><b>KSPCA animal-welfare fundraiser</b> — raised ₹20,000 via a Ketto crowdfunding campaign.</span><span class="lv">2022</span></div>
       <div class="lrow"><span class="lc">Academics</span><span class="lt"><b>IB Diploma, Alphabet International School, Chennai</b> — HL Economics, Business Management, Mathematics AI; SL Computer Science, English Lang &amp; Lit, Spanish Ab Initio. Extended Essay in Economics. Previously Kodaikanal International School, cumulative 90%.</span><span class="lv">2023–27</span></div>
       <div class="lrow"><span class="lc">Certificates</span><span class="lt"><b>Udemy — Python</b> · <b>Google Digital Garage — Digital Marketing</b> · <b>Trinity — Guitar Grade 2</b>.</span><span class="lv">2025–26</span></div>
@@ -590,10 +665,10 @@
     </div>
   </section>
 
-  <!-- ============ §12 MAP ============ -->
+  <!-- ============ §14 MAP ============ -->
   <section class="sec" id="map" data-code="MAP" data-title="The Map" data-light="night" data-cam="globe">
     <header class="sec-head">
-      <div class="sec-tag"><span class="sec-no">§12</span><span>The Map</span><button class="gochip" data-go="MAP">MAP &lt;GO&gt;</button></div>
+      <div class="sec-tag"><span class="sec-no">§14</span><span>The Map</span><button class="gochip" data-go="MAP">MAP &lt;GO&gt;</button></div>
       <h2 class="sec-title" data-split>Every society answers the same economic questions <em>differently.</em></h2>
     </header>
     <div class="map-body">
@@ -609,10 +684,10 @@
     </div>
   </section>
 
-  <!-- ============ §13 NEXT ============ -->
+  <!-- ============ §15 NEXT ============ -->
   <section class="sec" id="next" data-code="NEXT" data-title="What’s Next" data-light="night" data-cam="overview">
     <header class="sec-head">
-      <div class="sec-tag"><span class="sec-no">§13</span><span>What I’m Chasing Next</span><button class="gochip" data-go="NEXT">NEXT &lt;GO&gt;</button></div>
+      <div class="sec-tag"><span class="sec-no">§15</span><span>What I’m Chasing Next</span><button class="gochip" data-go="NEXT">NEXT &lt;GO&gt;</button></div>
       <h2 class="sec-title" data-split>Four questions I want to spend <em>real time on.</em></h2>
     </header>
     <ol class="qs" data-reveal>
@@ -624,10 +699,10 @@
     <p class="prose narrow" data-reveal>I don’t have the answers. I have the datasets, a method I trust, and the habit of throwing out my own first draft.</p>
   </section>
 
-  <!-- ============ §14 SERVICE ============ -->
+  <!-- ============ §16 SERVICE ============ -->
   <section class="sec" id="service" data-code="SERV" data-title="Service" data-light="midnight" data-cam="gift">
     <header class="sec-head">
-      <div class="sec-tag"><span class="sec-no">§14</span><span>Service — off the page</span><button class="gochip" data-go="SERV">SERV &lt;GO&gt;</button></div>
+      <div class="sec-tag"><span class="sec-no">§16</span><span>Service — off the page</span><button class="gochip" data-go="SERV">SERV &lt;GO&gt;</button></div>
       <h2 class="sec-title" data-split>The part of the year <em>I protect most.</em></h2>
     </header>
     <div class="prose narrow" data-reveal>
@@ -649,8 +724,8 @@
       </article>
       <article class="story" data-reveal>
         <span class="act-k">Teaching · volunteer</span>
-        <h3>Computer science workshops</h3>
-        <p><b>Introduction to Computer Science</b> for Grades 3–4 and 5–6, and before that a seminar on processor architecture and parallel computing for ~35 Grade-8 students. A student who understands how a machine thinks stops being afraid of it.</p>
+        <h3>A computer science workshop</h3>
+        <p>I built and taught a workshop on how a computer actually thinks — CPU and GPU architecture, and why parallel computing matters — for ~35 students. A student who understands how a machine thinks stops being afraid of it.</p>
       </article>
       <article class="story" data-reveal>
         <span class="act-k">Earlier</span>
@@ -664,10 +739,10 @@
     </div>
   </section>
 
-  <!-- ============ §15 CONTACT ============ -->
+  <!-- ============ §17 CONTACT ============ -->
   <section class="sec sec-last" id="contact" data-code="CONT" data-title="Contact" data-light="midnight" data-cam="giftClose">
     <header class="sec-head">
-      <div class="sec-tag"><span class="sec-no">§15</span><span>Contact</span><button class="gochip" data-go="CONT">CONT &lt;GO&gt;</button></div>
+      <div class="sec-tag"><span class="sec-no">§17</span><span>Contact</span><button class="gochip" data-go="CONT">CONT &lt;GO&gt;</button></div>
       <h2 class="sec-title" data-split>Write to me. <em>I read everything.</em></h2>
     </header>
     <div class="contact" data-reveal>
@@ -735,7 +810,7 @@
         <h3>Service &amp; teaching</h3>
         <ul>
           <li><b>Christmas-in-a-Box</b> — founded; Prema Vasam and Asha Nivas (via Bhumi).</li>
-          <li><b>Computer science workshops</b> — Grades 3–6, and a CPU/GPU seminar for ~35 Grade-8s.</li>
+          <li><b>Computer science workshop</b> — CPU/GPU architecture and parallel computing, taught to ~35 students.</li>
           <li><b>Podcast Co-Editor</b>; Vice-Chair, SPECPOL (MUN).</li>
         </ul>
       </section>
