@@ -19,6 +19,7 @@ import { initScroll, lenis, scrollToEl, startScroll } from "./scroll";
 import { fmtClock, sectionClock, sections } from "./sections";
 import { initVisionBoard } from "./visionboard";
 import { initCinema } from "./cinema";
+import { initFrequencyRoom } from "./freqroom";
 import { World } from "./world";
 import { PLACES } from "./world/stations";
 
@@ -48,6 +49,7 @@ const cursor = initCursor();
 initFigures();
 initVisionBoard();
 initCinema(reduced);
+initFrequencyRoom(reduced);
 initInteractives({ onYear: (i) => world?.setYear(i), onRate: (r) => world?.setRate(r), reduced });
 initNav({ reduced, openBrief });
 

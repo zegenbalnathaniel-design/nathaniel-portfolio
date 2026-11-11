@@ -8,7 +8,11 @@
 // clicking one projects it and opens Nathaniel's written lesson. Everything
 // here is his words; films without a lesson say so.
 
-import { FILMS, LESSON_COUNT, motifSvg, type Film } from "./data/films";
+import { CORE_COUNT, FILMS, motifSvg, type Film } from "./data/films";
+import STILLS from "./data/stills.json";
+
+const stillOf = (f: Film): string | undefined => (STILLS as Record<string, string>)[f.id];
+const art = (f: Film, i: number) => { const s = stillOf(f); return s ? `<img class="still" src="${s}" alt="" loading="lazy" decoding="async"/>` : motifSvg(f.motif, i, 120, 80); };
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
@@ -103,20 +107,20 @@ export function initCinema(reduced: boolean) {
   const screen = $("projScreen");
   const psTitle = $("psTitle"), psMeta = $("psMeta"), psLesson = $("psLesson"), psK = $("psK");
   $("statFilms").textContent = String(FILMS.length).padStart(3, "0");
-  $("statLessons").textContent = String(LESSON_COUNT).padStart(2, "0");
+  $("statLessons").textContent = String(CORE_COUNT).padStart(2, "0");
 
   const frame = (f: Film, i: number) =>
-    `<button type="button" class="frame" data-film="${f.id}" aria-label="${esc(f.title)}, ${f.year}"><span class="fr-no">${String(i + 1).padStart(2, "0")}</span>${motifSvg(f.motif, i, 120, 80)}<span class="fr-y">${f.year}</span></button>`;
+    `<button type="button" class="frame${stillOf(f) ? " has-still" : ""}" data-film="${f.id}" aria-label="${esc(f.title)}, ${f.year}"><span class="fr-no">${String(i + 1).padStart(2, "0")}</span>${art(f, i)}<span class="fr-y">${f.year}</span></button>`;
   const frames = FILMS.map(frame).join("");
   strip.innerHTML = frames + frames; // twice, so the strip can loop
 
   archive.innerHTML = FILMS.map((f, i) =>
-    `<button type="button" class="card${f.core ? " core" : ""}" data-film="${f.id}" aria-pressed="false">
+    `<button type="button" class="card${f.core ? " core" : ""}${stillOf(f) ? " has-still" : ""}" data-film="${f.id}" aria-pressed="false">
       <span class="cd-no">${String(i + 1).padStart(2, "0")}${f.core ? " · shaped me" : ""}</span>
-      ${motifSvg(f.motif, i, 120, 80)}
+      <span class="cd-art">${art(f, i)}</span>
       <b>${esc(f.title)}</b>
       <span class="cd-meta">${f.year} · ${esc(f.director)}</span>
-      ${f.tag ? `<span class="cd-tag">${esc(f.tag)}</span>` : ""}
+      <span class="cd-tag">${esc(f.tag)}</span>
     </button>`).join("");
 
   // ---- projecting a film
@@ -131,20 +135,25 @@ export function initCinema(reduced: boolean) {
     screen.classList.remove("flick");
     void screen.offsetWidth; // restart the flicker
     screen.classList.add("flick");
+    screen.style.removeProperty("--still");
     if (!show) { psK.textContent = "No film selected"; psTitle.textContent = "Hover a frame"; psMeta.textContent = "or click a card below"; psLesson.textContent = ""; return; }
+    const still = stillOf(show);
+    if (still) screen.style.setProperty("--still", `url("${still}")`);
     psK.textContent = show.core ? "Now showing · one that shaped me" : "Now showing";
     psTitle.textContent = show.title;
     psMeta.textContent = `${show.year} · dir. ${show.director}`;
-    psLesson.textContent = show.lesson ?? "";
+    psLesson.textContent = show.lesson;
     strip.querySelectorAll<HTMLElement>(".frame").forEach((b) => b.classList.toggle("sel", b.dataset.film === show.id));
     archive.querySelectorAll<HTMLElement>(".card").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.film === show.id)));
   };
   const choose = (f: Film) => {
     project(f, true);
-    const lessonHtml = f.lesson
-      ? `<span class="rv-k">What it left me · in my words</span><p>${esc(f.lesson)}</p>`
-      : `<span class="rv-k">No written review yet</span><p>I haven’t written this one up — it sits in the collection because it stayed with me. The diary is on <a href="https://letterboxd.com/the_realzeg/" target="_blank" rel="noopener">Letterboxd ↗</a>.</p>`;
-    review.innerHTML = `<b>${esc(f.title)}</b><span class="rv-meta">${f.year} · ${esc(f.director)}</span>${lessonHtml}`;
+    const still = stillOf(f);
+    const i = FILMS.indexOf(f);
+    review.innerHTML = `<div class="rv-art">${still ? `<img class="still" src="${still}" alt="A still from ${esc(f.title)}" decoding="async"/>` : motifSvg(f.motif, i, 120, 80)}</div>
+      <div class="rv-body"><b>${esc(f.title)}</b><span class="rv-meta">${f.year} · ${esc(f.director)}${f.core ? " · one that shaped me" : ""}</span>
+      <span class="rv-k">What it left me</span><p>${esc(f.lesson)}</p>
+      <span class="rv-foot">Frame ${String(i + 1).padStart(2, "0")} of ${FILMS.length} · the diary is on <a href="https://letterboxd.com/the_realzeg/" target="_blank" rel="noopener">Letterboxd ↗</a></span></div>`;
     review.hidden = false;
   };
   project(null);
