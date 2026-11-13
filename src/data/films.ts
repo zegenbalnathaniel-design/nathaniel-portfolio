@@ -14,28 +14,29 @@ export type Film = {
   motif: Motif;
   core?: boolean; // one of the films that shaped his life
   his?: boolean; // the lesson is in his words
+  scene: string; // the frame on the strip
 };
 
 export const FILMS: Film[] = [
-  { id: "good-will-hunting", title: "Good Will Hunting", year: 1997, director: "Gus Van Sant", lesson: "Brilliance is the easy part. Letting someone in is the hard part.", tag: "Letting people in", motif: "genius", core: true },
-  { id: "udaan", title: "Udaan", year: 2010, director: "Vikramaditya Motwane", lesson: "Agency, the power of literature, and finding who you are.", tag: "Agency", motif: "agency", core: true, his: true },
-  { id: "seven-samurai", title: "Seven Samurai", year: 1954, director: "Akira Kurosawa", lesson: "A love for Japanese culture, and its everlasting way of life.", tag: "Japan", motif: "japan", core: true, his: true },
-  { id: "parasite", title: "Parasite", year: 2019, director: "Bong Joon-ho", lesson: "Inequality has a floor plan. The same rain is a view from upstairs and a flood in the basement.", tag: "Class", motif: "class", core: true },
-  { id: "scent-of-a-woman", title: "Scent of a Woman", year: 1992, director: "Martin Brest", lesson: "Integrity.", tag: "Integrity", motif: "integrity", core: true, his: true },
-  { id: "finding-forrester", title: "Finding Forrester", year: 2000, director: "Gus Van Sant", lesson: "It gave me my love for literature.", tag: "Literature", motif: "literature", core: true, his: true },
-  { id: "pursuit-of-happyness", title: "The Pursuit of Happyness", year: 2006, director: "Gabriele Muccino", lesson: "Chase your dreams.", tag: "Dreams", motif: "dreams", core: true, his: true },
-  { id: "last-samurai", title: "The Last Samurai", year: 2003, director: "Edward Zwick", lesson: "A love for Japanese culture, and its everlasting way of life.", tag: "Japan", motif: "japan", core: true, his: true },
-  { id: "perks", title: "The Perks of Being a Wallflower", year: 2012, director: "Stephen Chbosky", lesson: "The shortcomings of being a teenager.", tag: "Being sixteen", motif: "teenager", core: true, his: true },
-  { id: "taare-zameen-par", title: "Taare Zameen Par", year: 2007, director: "Aamir Khan", lesson: "The power of life — and of a mentor.", tag: "Mentors", motif: "mentor", his: true },
-  { id: "coach-carter", title: "Coach Carter", year: 2005, director: "Thomas Carter", lesson: "The power of life — and of a mentor.", tag: "Mentors", motif: "mentor", his: true },
-  { id: "remember-the-titans", title: "Remember the Titans", year: 2000, director: "Boaz Yakin", lesson: "The power of life — and of a mentor.", tag: "Mentors", motif: "mentor", his: true },
-  { id: "american-history-x", title: "American History X", year: 1998, director: "Tony Kaye", lesson: "Extremism, and the reality of discrimination in society.", tag: "Extremism", motif: "extremism", his: true },
-  { id: "12th-fail", title: "12th Fail", year: 2023, director: "Vidhu Vinod Chopra", lesson: "Restart — as many times as it takes, and honestly every time.", tag: "Restart", motif: "restart" },
-  { id: "million-dollar-baby", title: "Million Dollar Baby", year: 2004, director: "Clint Eastwood", lesson: "Protect yourself at all times, and know who is in your corner.", tag: "Your corner", motif: "corner" },
-  { id: "taxi-driver", title: "Taxi Driver", year: 1976, director: "Martin Scorsese", lesson: "What loneliness does to a mind, and how a city can look straight through a person.", tag: "Loneliness", motif: "city" },
-  { id: "dead-poets-society", title: "Dead Poets Society", year: 1989, director: "Peter Weir", lesson: "Seize the day — and understand what thinking for yourself can cost.", tag: "Carpe diem", motif: "verse" },
-  { id: "jerry-maguire", title: "Jerry Maguire", year: 1996, director: "Cameron Crowe", lesson: "Fewer clients, more care. Write the memo you believe in, even if it costs you the job.", tag: "The memo", motif: "memo" },
-  { id: "how-to-lose-a-guy", title: "How to Lose a Guy in 10 Days", year: 2003, director: "Donald Petrie", lesson: "Two people playing an angle, and the game ends the moment one of them is honest.", tag: "Honesty", motif: "honest" },
+  { id: "good-will-hunting", title: "Good Will Hunting", year: 1997, director: "Gus Van Sant", lesson: "Brilliance is the easy part. Letting someone in is the hard part.", tag: "Letting people in", motif: "genius", core: true, scene: "The park bench conversation" },
+  { id: "udaan", title: "Udaan", year: 2010, director: "Vikramaditya Motwane", lesson: "Agency, the power of literature, and finding who you are.", tag: "Agency", motif: "agency", core: true, his: true, scene: "Rohan and the railway tracks" },
+  { id: "seven-samurai", title: "Seven Samurai", year: 1954, director: "Akira Kurosawa", lesson: "A love for Japanese culture, and its everlasting way of life.", tag: "Japan", motif: "japan", core: true, his: true, scene: "The samurai and the village" },
+  { id: "parasite", title: "Parasite", year: 2019, director: "Bong Joon-ho", lesson: "Inequality has a floor plan. The same rain is a view from upstairs and a flood in the basement.", tag: "Class", motif: "class", core: true, scene: "The hidden space beneath the house" },
+  { id: "scent-of-a-woman", title: "Scent of a Woman", year: 1992, director: "Martin Brest", lesson: "Integrity.", tag: "Integrity", motif: "integrity", core: true, his: true, scene: "Frank Slade" },
+  { id: "finding-forrester", title: "Finding Forrester", year: 2000, director: "Gus Van Sant", lesson: "It gave me my love for literature.", tag: "Literature", motif: "literature", core: true, his: true, scene: "The mentor and his protégé" },
+  { id: "pursuit-of-happyness", title: "The Pursuit of Happyness", year: 2006, director: "Gabriele Muccino", lesson: "Chase your dreams.", tag: "Dreams", motif: "dreams", core: true, his: true, scene: "Chris and his son" },
+  { id: "last-samurai", title: "The Last Samurai", year: 2003, director: "Edward Zwick", lesson: "A love for Japanese culture, and its everlasting way of life.", tag: "Japan", motif: "japan", core: true, his: true, scene: "The rain-soaked training scene" },
+  { id: "perks", title: "The Perks of Being a Wallflower", year: 2012, director: "Stephen Chbosky", lesson: "The shortcomings of being a teenager.", tag: "Being sixteen", motif: "teenager", core: true, his: true, scene: "The school dance" },
+  { id: "taare-zameen-par", title: "Taare Zameen Par", year: 2007, director: "Aamir Khan", lesson: "The power of life — and of a mentor.", tag: "Mentors", motif: "mentor", his: true, scene: "Ishaan in the classroom" },
+  { id: "coach-carter", title: "Coach Carter", year: 2005, director: "Thomas Carter", lesson: "The power of life — and of a mentor.", tag: "Mentors", motif: "mentor", his: true, scene: "Coach Carter in the classroom" },
+  { id: "remember-the-titans", title: "Remember the Titans", year: 2000, director: "Boaz Yakin", lesson: "The power of life — and of a mentor.", tag: "Mentors", motif: "mentor", his: true, scene: "The team on the field" },
+  { id: "american-history-x", title: "American History X", year: 1998, director: "Tony Kaye", lesson: "Extremism, and the reality of discrimination in society.", tag: "Extremism", motif: "extremism", his: true, scene: "Derek Vinyard" },
+  { id: "12th-fail", title: "12th Fail", year: 2023, director: "Vidhu Vinod Chopra", lesson: "Restart — as many times as it takes, and honestly every time.", tag: "Restart", motif: "restart", scene: "Manoj preparing for the examination" },
+  { id: "million-dollar-baby", title: "Million Dollar Baby", year: 2004, director: "Clint Eastwood", lesson: "Protect yourself at all times, and know who is in your corner.", tag: "Your corner", motif: "corner", scene: "Maggie and Frankie" },
+  { id: "taxi-driver", title: "Taxi Driver", year: 1976, director: "Martin Scorsese", lesson: "What loneliness does to a mind, and how a city can look straight through a person.", tag: "Loneliness", motif: "city", scene: "Travis Bickle in the taxi" },
+  { id: "dead-poets-society", title: "Dead Poets Society", year: 1989, director: "Peter Weir", lesson: "Seize the day — and understand what thinking for yourself can cost.", tag: "Carpe diem", motif: "verse", scene: "The desks scene" },
+  { id: "jerry-maguire", title: "Jerry Maguire", year: 1996, director: "Cameron Crowe", lesson: "Fewer clients, more care. Write the memo you believe in, even if it costs you the job.", tag: "The memo", motif: "memo", scene: "Jerry on the phone" },
+  { id: "how-to-lose-a-guy", title: "How to Lose a Guy in 10 Days", year: 2003, director: "Donald Petrie", lesson: "Two people playing an angle, and the game ends the moment one of them is honest.", tag: "Honesty", motif: "honest", scene: "Andie and Ben" },
 ];
 
 export const CORE_COUNT = FILMS.filter((f) => f.core).length;

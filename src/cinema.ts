@@ -12,7 +12,7 @@ import { CORE_COUNT, FILMS, motifSvg, type Film } from "./data/films";
 import STILLS from "./data/stills.json";
 
 const stillOf = (f: Film): string | undefined => (STILLS as Record<string, string>)[f.id];
-const art = (f: Film, i: number) => { const s = stillOf(f); return s ? `<img class="still" src="${s}" alt="" loading="lazy" decoding="async"/>` : motifSvg(f.motif, i, 120, 80); };
+const art = (f: Film, i: number) => { const s = stillOf(f); return s ? `<img class="still" src="${s}" alt="${esc(f.scene)}" loading="lazy" decoding="async"/>` : motifSvg(f.motif, i, 120, 80); };
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
@@ -150,7 +150,7 @@ export function initCinema(reduced: boolean) {
     project(f, true);
     const still = stillOf(f);
     const i = FILMS.indexOf(f);
-    review.innerHTML = `<div class="rv-art">${still ? `<img class="still" src="${still}" alt="A still from ${esc(f.title)}" decoding="async"/>` : motifSvg(f.motif, i, 120, 80)}</div>
+    review.innerHTML = `<div class="rv-art">${still ? `<img class="still" src="${still}" alt="${esc(f.scene)} — a frame from ${esc(f.title)}" decoding="async"/>` : motifSvg(f.motif, i, 120, 80)}<span class="rv-cap">${esc(f.scene)}</span></div>
       <div class="rv-body"><b>${esc(f.title)}</b><span class="rv-meta">${f.year} · ${esc(f.director)}${f.core ? " · one that shaped me" : ""}</span>
       <span class="rv-k">What it left me</span><p>${esc(f.lesson)}</p>
       <span class="rv-foot">Frame ${String(i + 1).padStart(2, "0")} of ${FILMS.length} · the diary is on <a href="https://letterboxd.com/the_realzeg/" target="_blank" rel="noopener">Letterboxd ↗</a></span></div>`;
