@@ -10,6 +10,8 @@
 
 type V3 = [number, number, number];
 
+import { TRACKS, embedUrl, listenUrl } from "./data/music";
+
 // ---------------------------------------------------------------- isometric drawing
 const S = 15, OX = 302, OY = 108, C = Math.cos(Math.PI / 6), H = 0.5;
 const px = (x: number, y: number, z: number): [number, number] => [OX + (x - z) * C * S, OY + (x + z) * H * S - y * S];
@@ -40,6 +42,9 @@ const ftext = (x: number, y: number, z: number, t: string, size = 0.55, cls = "t
   `<text class="${cls}" transform="${mXY(x, y, z)} scale(1 -1)" font-size="${size}" text-anchor="${anchor}">${t}</text>`;
 
 // ---------------------------------------------------------------- the instrument's parts
+// the tonearm's angles in the platter plane: on its rest, on the outer groove, on the inner groove
+const ARM_REST = 84, ARM_OUT = 101, ARM_IN = 124;
+const TRACK_LEN = 48; // seconds a record side gives each track before the arm walks on
 const WHITE = [60, 62, 64, 65, 67, 69, 71, 72], BLACK: Record<number, number> = { 0: 61, 1: 63, 3: 66, 4: 68, 5: 70 };
 const NAMES = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
 const noteName = (m: number) => `${NAMES[m % 12]}${Math.floor(m / 12) - 1}`;
@@ -56,18 +61,18 @@ function drawScene(): string {
   // ---- turntable
   g += box(1, 13, 2, 3.2, 2, 14);
   g += cyl(7, 3.2, 3.55, 8, 4.7);
-  g += `<g transform="${mXZ(7, 3.6, 8)}"><g id="ttPlatter" data-act="platter">
+  g += `<g transform="${mXZ(7, 3.6, 8)}" data-act="platter"><g id="ttPlatter">
     <circle class="f" r="4.3"/>
     ${[1.7, 2.3, 2.9, 3.5, 3.95].map((r) => `<circle class="s" r="${r}"/>`).join("")}
     <circle class="al" r="1.3"/><circle class="i" r="1.3" fill="none"/>
     <path class="i" d="M0.35 0 L1.15 0"/><circle class="i" r="0.1" cx="-0.6" cy="0.55"/>
     <path class="s" d="M-4.1 0 L-3.6 0"/>
   </g><circle class="f" r="0.14"/></g>`;
-  g += cyl(7, 3.6, 4.25, 8, 0.12, "i");
+  g += `<g data-act="platter">${cyl(7, 3.6, 4.25, 8, 0.12, "i")}</g>`;
   // the tonearm: a pivot, a counterweight, the arm, and the headshell over the record
   g += cyl(12, 3.2, 4.3, 3.2, 0.55);
-  g += seg([12, 4.3, 3.2], [12.7, 4.3, 2.5], "i") + cyl(12.7, 4.05, 4.5, 2.5, 0.3);
-  g += `<g id="ttArm">${seg([12, 4.3, 3.2], [8.1, 4.05, 6.1], "i")}${seg([12, 4.22, 3.2], [8.1, 3.97, 6.1], "i")}${box(7.6, 8.3, 3.7, 4.05, 5.9, 6.5)}</g>`;
+  g += box(12.1, 12.8, 3.2, 4.15, 8.6, 9.4); // the arm rest
+  g += `<g transform="${mXZ(12, 4.32, 3.2)}" data-act="arm"><g id="ttArm" transform="rotate(${ARM_REST})"><circle class="hit" r="0.9" cx="5.6"/><path class="i" d="M0 0 L-1 -0.35"/><circle class="f" cx="-1.05" cy="-0.37" r="0.32"/><path class="i" d="M0 0 L5.5 0"/><path class="i" d="M0.2 0.09 L5.5 0.09"/><path class="f" d="M5.3 -0.28 L6.25 -0.28 L6.25 0.28 L5.3 0.28 Z"/><path class="a" d="M6.1 0.28 L6.1 0.5"/></g><circle class="f" r="0.3"/></g>`;
   // the speed switch
   g += box(2, 3.4, 3.2, 3.5, 12, 13.2);
   g += `<g id="ttSpeed" data-act="speed" transform="${mXZ(2.7, 3.5, 12.6)}"><rect class="hit" x="-1.2" y="-1" width="2.4" height="2"/><path class="i" id="ttLever" d="M0 0 L-0.45 -0.45"/><circle class="i" r="0.14"/></g>`;
@@ -165,7 +170,7 @@ export function initFrequencyRoom(reduced: boolean) {
   host.innerHTML = `<svg class="freq-svg" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
     <defs><filter id="frGlow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="1.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
     <text class="tt" x="24" y="34">THE FREQUENCY ROOM</text><text class="ts" x="24" y="50">AN ANALOG SOUND MACHINE · EVERY PART MOVES ON A SPRING</text>
-    <text class="ts" x="976" y="582" text-anchor="end" id="frRead">AT REST</text>
+    <text class="ts" x="976" y="34" text-anchor="end" id="frRead">AT REST</text>
     ${drawScene()}
   </svg>`;
   const svg = host.querySelector("svg")!;
@@ -176,6 +181,9 @@ export function initFrequencyRoom(reduced: boolean) {
 
   // ---- state
   let rpm45 = false;
+  const deck = { track: -1, t: 0, playing: false, dropAt: 0 };
+  const armS = new Spring(38, 9, ARM_REST);
+  const nowEl = document.getElementById("freqNow");
   const platterW = new Spring(6, 3, 0); // angular velocity follows the motor; a flick pushes it
   let platterA = 0;
   const motorW = () => ((rpm45 ? 45 : 33.33) / 60) * Math.PI * 2;
@@ -230,7 +238,7 @@ export function initFrequencyRoom(reduced: boolean) {
   const keyEl = (n: number) => svg.querySelector<SVGGElement>(`#key${n}`);
 
   // ---- pointer: one handler, the part under the pointer decides
-  type Drag = { kind: "platter"; lastA: number; lastT: number } | { kind: "knob"; i: number; y0: number; v0: number } | { kind: "key"; note: number };
+  type Drag = { kind: "platter"; lastA: number; lastT: number; x0: number; y0: number; t0: number } | { kind: "knob"; i: number; y0: number; v0: number } | { kind: "key"; note: number };
   let drag: Drag | null = null;
   const platterCenter = () => { const r = svg.getBoundingClientRect(); const [cx, cy] = px(7, 3.6, 8); return { x: r.left + (cx / 1000) * r.width, y: r.top + (cy / 600) * r.height, k: r.width / 1000 }; };
   const platterAngle = (e: PointerEvent) => {
@@ -246,12 +254,13 @@ export function initFrequencyRoom(reduced: boolean) {
     host.focus({ preventScroll: true });
     const act = t.dataset.act;
     if (act === "key") { const n = +t.dataset.note!; noteOn(n); drag = { kind: "key", note: n }; }
-    else if (act === "platter") { drag = { kind: "platter", lastA: platterAngle(e), lastT: performance.now() }; say("platter in hand"); }
+    else if (act === "platter") { const now = performance.now(); drag = { kind: "platter", lastA: platterAngle(e), lastT: now, x0: e.clientX, y0: e.clientY, t0: now }; }
+    else if (act === "arm") { stopRecord(); }
     else if (act === "knob") { const i = +t.dataset.knob!; drag = { kind: "knob", i, y0: e.clientY, v0: knobs[i] }; }
     else if (act === "btn") { transport(t.dataset.btn!); }
     else if (act === "speed") { rpm45 = !rpm45; $("ttLever").setAttribute("d", rpm45 ? "M0 0 L0.45 -0.45" : "M0 0 L-0.45 -0.45"); say(rpm45 ? "45 rpm" : "33⅓ rpm"); }
     else if (act === "wave") { wave = (wave + 1) % 3; $("syWave").setAttribute("y", fx(5.95 + wave * 0.65)); for (const v of voices.values()) if (v.osc) v.osc.type = WAVES[wave]; say(`${WAVE_LABEL[wave].toLowerCase()} wave`); }
-    else if (act === "power") { power = !power; $("syPower").setAttribute("x", power ? "43.75" : "44.35"); $("syLed").classList.toggle("on", power); if (!power) for (const n of [...voices.keys()]) noteOff(n); say(power ? "sound on" : "sound off"); }
+    else if (act === "power") { power = !power; $("syPower").setAttribute("x", power ? "43.75" : "44.35"); $("syLed").classList.toggle("on", power); if (!power) { for (const n of [...voices.keys()]) noteOff(n); surfaceGain?.gain.setTargetAtTime(0, ctx?.currentTime ?? 0, 0.1); } else if (deck.playing) surface(true); say(power ? "sound on" : "sound off"); }
     if (drag) svg.setPointerCapture(e.pointerId);
     wake();
   });
@@ -278,15 +287,111 @@ export function initFrequencyRoom(reduced: boolean) {
     }
     wake();
   });
-  const release = () => {
+  const release = (e?: PointerEvent) => {
     if (!drag) return;
     if (drag.kind === "key") noteOff(drag.note);
-    if (drag.kind === "platter") say("platter released");
+    if (drag.kind === "platter") {
+      const still = e && Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 6 && performance.now() - drag.t0 < 500;
+      if (still) cueTrack(deck.playing ? (deck.track + 1) % TRACKS.length : Math.max(0, deck.track + 1) % TRACKS.length);
+      else say("platter released");
+    }
     drag = null; wake();
   };
-  svg.addEventListener("pointerup", release);
-  svg.addEventListener("pointercancel", release);
-  svg.addEventListener("lostpointercapture", release);
+  svg.addEventListener("pointerup", (e) => release(e));
+  svg.addEventListener("pointercancel", () => release());
+  svg.addEventListener("lostpointercapture", () => release());
+
+  // ---- the record: a click cues the next track; the arm swings in, the needle drops, the side plays on
+  const esc = (t: string) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+  function cueTrack(i: number) {
+    deck.track = i; deck.t = 0; deck.playing = true; deck.dropAt = performance.now() + 650;
+    const t = TRACKS[i];
+    say(`${t.title} — ${t.artist}`);
+    frRead.textContent = `NOW PLAYING · ${t.title} — ${t.artist}`.toUpperCase();
+    frRead.classList.add("tr-on");
+    renderNow(); markTracks();
+    surface(true);
+    wake();
+  }
+  function stopRecord() {
+    if (!deck.playing) return;
+    deck.playing = false;
+    say("needle lifted");
+    frRead.textContent = "AT REST";
+    frRead.classList.remove("tr-on");
+    renderNow(); markTracks();
+    surface(false);
+    wake();
+  }
+  function renderNow() {
+    if (!nowEl) return;
+    const t = deck.track >= 0 ? TRACKS[deck.track] : null;
+    if (!t) { nowEl.hidden = true; nowEl.innerHTML = ""; return; }
+    const embed = embedUrl(t);
+    nowEl.hidden = false;
+    nowEl.innerHTML = `<div class="fn-head"><span class="fn-k">${deck.playing ? "Now playing" : "Last played"} · ${String(deck.track + 1).padStart(2, "0")} / ${TRACKS.length}</span>
+      <b>${esc(t.title)}</b><span class="fn-meta">${esc(t.artist)} · <i>${esc(t.album)}</i>, ${t.year}</span></div>
+      <div class="fn-ctl"><button type="button" data-deck="prev" aria-label="Previous track">◀◀</button><button type="button" data-deck="${deck.playing ? "stop" : "play"}">${deck.playing ? "■ stop" : "▶ play"}</button><button type="button" data-deck="next" aria-label="Next track">▶▶</button>
+      <a href="${listenUrl(t)}" target="_blank" rel="noopener">${t.spotify ? "Open on Spotify ↗" : "Find it on Spotify ↗"}</a></div>
+      ${embed ? `<iframe class="fn-embed" src="${embed}" width="100%" height="152" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" title="${esc(t.title)} on Spotify"></iframe>` : ""}`;
+  }
+  nowEl?.addEventListener("click", (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLButtonElement>("button[data-deck]");
+    if (!b) return;
+    const a = b.dataset.deck;
+    if (a === "next") cueTrack((deck.track + 1) % TRACKS.length);
+    else if (a === "prev") cueTrack((deck.track - 1 + TRACKS.length) % TRACKS.length);
+    else if (a === "stop") stopRecord();
+    else cueTrack(Math.max(0, deck.track));
+  });
+  // the sleeves carry their tracklists; a row cues the record
+  document.querySelectorAll<HTMLElement>("[data-tracks]").forEach((ol) => {
+    const who = ol.dataset.tracks;
+    ol.innerHTML = TRACKS.map((t, i) => t.artist === who
+      ? `<li><button type="button" data-track="${i}"><span class="tr-no">${String(i + 1).padStart(2, "0")}</span><b>${esc(t.title)}</b><span class="tr-al">${esc(t.album)}, ${t.year}</span></button></li>` : "").join("");
+  });
+  const markTracks = () => document.querySelectorAll<HTMLElement>("[data-track]").forEach((b) => b.classList.toggle("on", deck.playing && +b.dataset.track! === deck.track));
+  // the sleeves' tracklists cue the record too
+  document.addEventListener("click", (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLElement>("[data-track]");
+    if (!b) return;
+    const i = +b.dataset.track!;
+    if (!Number.isFinite(i)) return;
+    cueTrack(i);
+    host.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "center" });
+  });
+
+  // the sound of a record: the needle drop, and the faint surface noise under a side
+  let surfaceGain: GainNode | null = null;
+  const noiseBuffer = (ac: AudioContext, secs: number) => {
+    const b = ac.createBuffer(1, Math.floor(ac.sampleRate * secs), ac.sampleRate);
+    const d = b.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    return b;
+  };
+  function surface(on: boolean) {
+    const ac = audio();
+    if (!ac || !master) return;
+    if (!surfaceGain) {
+      const src = ac.createBufferSource(); src.buffer = noiseBuffer(ac, 2.5); src.loop = true;
+      const lp = ac.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 2400;
+      surfaceGain = ac.createGain(); surfaceGain.gain.value = 0;
+      src.connect(lp); lp.connect(surfaceGain); surfaceGain.connect(master); src.start();
+    }
+    surfaceGain.gain.cancelScheduledValues(ac.currentTime);
+    surfaceGain.gain.setTargetAtTime(on ? 0.05 : 0, ac.currentTime, 0.25);
+  }
+  function needleDrop() {
+    const ac = audio();
+    if (!ac || !master) return;
+    const burst = ac.createBufferSource(); burst.buffer = noiseBuffer(ac, 0.3);
+    const bp = ac.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = 1900; bp.Q.value = 0.6;
+    const g = ac.createGain(); g.gain.setValueAtTime(0.5, ac.currentTime); g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.3);
+    burst.connect(bp); bp.connect(g); g.connect(master); burst.start(); burst.stop(ac.currentTime + 0.32);
+    const thump = ac.createOscillator(); thump.frequency.value = 52;
+    const tg = ac.createGain(); tg.gain.setValueAtTime(0.6, ac.currentTime); tg.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.16);
+    thump.connect(tg); tg.connect(master); thump.start(); thump.stop(ac.currentTime + 0.18);
+  }
 
   // keyboard: the figure is a group with focus; letters play, like on the panel
   host.addEventListener("keydown", (e) => {
@@ -308,7 +413,7 @@ export function initFrequencyRoom(reduced: boolean) {
   let stopPop = 0;
 
   // ---- the frame: everything that moves, moves here
-  const scope = $("scope"), vuEl = [$("vu0"), $("vu1")], platterEl = $("ttPlatter"), reelL = $("csReelL"), reelR = $("csReelR"), packL = $("csPackL"), packR = $("csPackR"), counter = $("csCounter");
+  const scope = $("scope"), vuEl = [$("vu0"), $("vu1")], platterEl = $("ttPlatter"), armEl = $("ttArm"), reelL = $("csReelL"), reelR = $("csReelR"), packL = $("csPackL"), packR = $("csPackR"), counter = $("csCounter");
   const knobEls = [0, 1, 2].map((i) => $(`knob${i}`));
   let inView = false, running = false, last = 0;
   new IntersectionObserver((en) => { inView = en[0].isIntersecting; if (inView) wake(); }, { rootMargin: "15% 0px" }).observe(host);
@@ -316,7 +421,7 @@ export function initFrequencyRoom(reduced: boolean) {
 
   function tick(now: number) {
     const dt = Math.min(0.05, (now - last) / 1000); last = now;
-    let busy = !!drag || voices.size > 0 || tape.playing || tape.rewinding;
+    let busy = !!drag || voices.size > 0 || tape.playing || tape.rewinding || deck.playing;
 
     // turntable: velocity springs back to the motor's; a flick overshoots and settles
     if (!(drag?.kind === "platter")) {
@@ -324,6 +429,23 @@ export function initFrequencyRoom(reduced: boolean) {
       platterA += platterW.x * dt;
     }
     platterEl.setAttribute("transform", `rotate(${((platterA * 180) / Math.PI).toFixed(2)})`);
+
+    // the record: the arm walks from the outer groove to the inner one over a track, then on to the next
+    let music = 0;
+    if (deck.playing) {
+      if (deck.dropAt && now >= deck.dropAt) { deck.dropAt = 0; needleDrop(); }
+      deck.t += dt;
+      if (deck.t >= TRACK_LEN) {
+        if (deck.track < TRACKS.length - 1) cueTrack(deck.track + 1);
+        else { stopRecord(); say("end of side"); }
+      }
+      const tt = now / 1000;
+      music = Math.max(0, Math.min(1, 0.42 + 0.22 * Math.sin(tt * 1.7) + 0.18 * Math.sin(tt * 4.3 + 1) + 0.12 * Math.sin(tt * 9.1 + 2))) * (deck.dropAt ? 0 : 1);
+      busy = true;
+    }
+    const armTarget = deck.playing ? (deck.dropAt ? ARM_OUT - 3 : ARM_OUT + (ARM_IN - ARM_OUT) * Math.min(1, deck.t / TRACK_LEN)) : ARM_REST;
+    if (reduced) armS.set(armTarget); else if (armS.to(armTarget, dt)) busy = true;
+    armEl.setAttribute("transform", `rotate(${fx(armS.x)})`);
 
     // cassette: tape speed is constant, so each reel turns at speed / its own radius
     if (tape.playing || tape.rewinding) {
@@ -373,14 +495,17 @@ export function initFrequencyRoom(reduced: boolean) {
           y += w * v.env * 0.55;
         }
         y = Math.max(-1, Math.min(1, y)) * (0.35 + knobs[0] * 0.65);
+      } else if (music > 0) {
+        const tt = now / 1000;
+        y = (0.5 * Math.sin(2 * Math.PI * 3 * u + tt * 6) + 0.3 * Math.sin(2 * Math.PI * 7 * u - tt * 4) + 0.2 * Math.sin(2 * Math.PI * 13 * u + tt * 9)) * music * 0.9;
       } else if (!reduced) y = Math.sin(now / 900 + u * 7) * 0.012 + (Math.random() - 0.5) * 0.02;
       d += `${i ? "L" : "M"}${fx(w0 + u * (w1 - w0))} ${fx(yc + y * amp)} `;
     }
     scope.setAttribute("d", d);
-    scope.classList.toggle("hot", level > 0.02);
+    scope.classList.toggle("hot", level > 0.02 || music > 0);
 
     // VU: the needle chases the level on a spring, with a hair of wobble at rest
-    const target = Math.min(1, level * 0.75) * 100 - 50;
+    const target = Math.min(1, level * 0.75 + music * 0.95) * 100 - 50;
     vu.forEach((s, i) => {
       const wob = reduced ? 0 : Math.sin(now / 700 + i * 2.1) * 1.2;
       if (reduced) s.set(target); else if (s.to(target + wob, dt)) busy = true;

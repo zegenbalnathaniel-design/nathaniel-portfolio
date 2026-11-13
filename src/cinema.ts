@@ -120,7 +120,7 @@ export function initCinema(reduced: boolean) {
       <span class="cd-art">${art(f, i)}</span>
       <b>${esc(f.title)}</b>
       <span class="cd-meta">${f.year} · ${esc(f.director)}</span>
-      <span class="cd-tag">${esc(f.tag)}</span>
+      <span class="cd-foot"><span class="cd-tag">${esc(f.tag)}</span><span class="cd-stars" aria-label="Rated five stars">★★★★★</span></span>
     </button>`).join("");
 
   // ---- projecting a film
@@ -151,7 +151,7 @@ export function initCinema(reduced: boolean) {
     const still = stillOf(f);
     const i = FILMS.indexOf(f);
     review.innerHTML = `<div class="rv-art">${still ? `<img class="still" src="${still}" alt="${esc(f.scene)} — a frame from ${esc(f.title)}" decoding="async"/>` : motifSvg(f.motif, i, 120, 80)}<span class="rv-cap">${esc(f.scene)}</span></div>
-      <div class="rv-body"><b>${esc(f.title)}</b><span class="rv-meta">${f.year} · ${esc(f.director)}${f.core ? " · one that shaped me" : ""}</span>
+      <div class="rv-body"><b>${esc(f.title)}</b><span class="rv-meta">${f.year} · ${esc(f.director)}${f.core ? " · one that shaped me" : ""} · <span class="cd-stars">★★★★★</span> on Letterboxd</span>
       <span class="rv-k">What it left me</span><p>${esc(f.lesson)}</p>
       <span class="rv-foot">Frame ${String(i + 1).padStart(2, "0")} of ${FILMS.length} · the diary is on <a href="https://letterboxd.com/the_realzeg/" target="_blank" rel="noopener">Letterboxd ↗</a></span></div>`;
     review.hidden = false;

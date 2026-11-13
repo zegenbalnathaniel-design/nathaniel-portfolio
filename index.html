@@ -545,6 +545,10 @@
         <p>The pitch that reached the top ten wore a brand I built myself. Design taught me the same thing the newsletter did: how something communicates is part of what it says.</p>
       </article>
     </div>
+    <figure class="sketchbook" data-reveal>
+      <img src="/media/sketchbook.webp" alt="Three sketches from Nathaniel’s sketchbook: the Eiffel Tower seen down a Paris street, with bare trees and a light wash of colour; the Parthenon in pen; and the United States Capitol in pen" loading="lazy" decoding="async" width="1004" height="1112"/>
+      <figcaption><span>From the sketchbook</span> — the Eiffel Tower down a Paris street, the Parthenon, the Capitol. Pen, pencil and a little wash: structure first, detail after.</figcaption>
+    </figure>
   </section>
 
   <!-- ============ §10 LIBRARY ============ -->
@@ -575,7 +579,7 @@
       <div class="sec-tag"><span class="sec-no">§11</span><span>Personal archive · Vol. 001 — Cinema</span><button class="gochip" data-go="CINE">CINE &lt;GO&gt;</button></div>
       <h2 class="sec-title" data-split>Cinema is how I <em>understand people.</em></h2>
     </header>
-    <p class="prose narrow" data-reveal>A collection of stories, characters and ideas that have stayed with me long after the credits rolled. Nineteen films, and what each one left me — nine of them changed how I see the world.</p>
+    <p class="prose narrow" data-reveal>A collection of stories, characters and ideas that have stayed with me long after the credits rolled. Nineteen films — every one of them five stars on my Letterboxd — and what each one left me. Nine of them changed how I see the world.</p>
 
     <div class="projector-wrap" data-reveal>
       <p class="proj-hint"><span>The Memory Projector</span> — bring the cursor near and the reels wind up · hover a frame to project it · click to read what it left me</p>
@@ -607,37 +611,55 @@
       <div class="sec-tag"><span class="sec-no">§12</span><span>Personal archive · Vol. 002 — Music · The Frequency Room</span><button class="gochip" data-go="MUSIC">MUSIC &lt;GO&gt;</button></div>
       <h2 class="sec-title" data-split>Pink Floyd first. <em>Then everyone else.</em></h2>
     </header>
-    <p class="prose narrow" data-reveal>Pink Floyd is the band I write about. Oasis, the Rolling Stones and Joe Cocker are the rest of the rotation — the records that are on when the economics is not. Below, a 1970s studio drawn as one machine: every part of it moves, and the synthesizer actually plays.</p>
+    <p class="prose narrow" data-reveal>Pink Floyd is the band I write about. The Rolling Stones, Oasis and Sade are the rest of the rotation — the records that are on when the economics is not. Below, a 1970s studio drawn as one machine: click the record and it plays through the side, twelve tracks in order; the synthesizer actually plays; every part moves.</p>
     <div class="listen">
       <figure class="fig-stage freq-fig" data-reveal>
-        <div class="freq" id="freq" role="group" tabindex="0" aria-label="The Frequency Room, an analog sound machine: a turntable you can flick, a cassette deck, a synthesizer you can play with the keys A to K, two VU meters and an oscilloscope"></div>
-        <figcaption class="annot"><i></i><span>The Frequency Room</span><em>flick the platter · press play · play the keys (A–K) · drag the knobs</em><b class="readout" data-read>at rest</b></figcaption>
+        <div class="freq" id="freq" role="group" tabindex="0" aria-label="The Frequency Room, an analog sound machine: click the record to play through the tracklist, a cassette deck, a synthesizer you can play with the keys A to K, two VU meters and an oscilloscope"></div>
+        <figcaption class="annot"><i></i><span>The Frequency Room</span><em>click the record to play · flick the platter · play the keys (A–K) · drag the knobs</em><b class="readout" data-read>at rest</b></figcaption>
       </figure>
+      <div class="freq-now" id="freqNow" hidden></div>
       <div class="sleeves" data-reveal>
         <article class="sleeve sleeve-lead">
           <span class="sl-k">Side A · the one I write about</span>
           <h3>Pink Floyd</h3>
           <span class="sl-meta">London · formed 1965</span>
-          <p>The band I keep returning to, and the one I have actually sat down and written about. The essay is on Substack.</p>
-          <div class="sl-links"><a href="https://nathanielzegenbal.substack.com/" target="_blank" rel="noopener">Read it on Substack ↗</a><a href="https://open.spotify.com/search/Pink%20Floyd" target="_blank" rel="noopener">Spotify ↗</a></div>
+          <p>Their argument, made quietly across two decades: institutions do not merely regulate us from the outside — they dictate our identity until we no longer realise who we truly are. I trace it through three songs: the self formed (<i>Another Brick in the Wall</i>), the self spent (<i>Time</i>) and the self lost (<i>Wish You Were Here</i>).</p>
+          <ol class="tracks" data-tracks="Pink Floyd" aria-label="Pink Floyd tracks on the record"></ol>
+          <div class="sl-links"><a href="https://nathanielzegenbal.substack.com/" target="_blank" rel="noopener">Substack ↗</a><a href="https://open.spotify.com/search/Pink%20Floyd" target="_blank" rel="noopener">Spotify ↗</a></div>
+          <details class="essay">
+            <summary><span>Read the essay</span> — on Pink Floyd, alienation, and the self we lose · about 1,100 words</summary>
+            <div class="essay-body">
+              <p>Few bands have left a legacy as timeless as Pink Floyd’s. Their influence is immortalized through their visual symbols: a prism refracting white light into a spectrum of color, a burning handshake between two businessmen and a colossal wall built brick by brick across a stadium stage. These have become the defining symbols of the rock industry’s most ambitious band. However, these symbols conceal an underlying truth: over the course of two decades, the band’s main argument was that institutions do not merely regulate us from the outside. They dictate our identity until we no longer realize who we truly are.</p>
+              <p>This argument is easy to miss because the band never tried to deliver it as a manifesto. Instead, it unfolds quietly across their catalogue, embedded within songs that explore ordinary forms of suffering: the vexation of school, the spectre of growing old, and the grief of bereavement. Considered individually, these songs read as disconnected accounts of personal loss. Collectively, however, they form a profound critique of modern society, with alienation at its very core.</p>
+              <p>Alienation is the estrangement of a person from their own humanity within the very system they live in. This concept stems from Karl Marx, who argues that industrial capitalism alienates people from what they make, the work they do, and eventually the people around them. Pink Floyd’s ingenuity stemmed from their ability to reveal an abstract condition through the ordinary; a classroom, a wristwatch, the memory of a friend. This is traced across three stages: the self formed, the self spent, and the self lost.</p>
+              <p>The first stage of alienation begins long before adulthood. <i>Another Brick in the Wall, Pt. 2</i> (Pink Floyd’s iconic 1979 hit) presents the classroom not as a site of discovery, but as a factory. Students are manufactured rather than educated; their voices are suppressed into a single anonymous chorus until their individuality is gradually stripped away. This creates a homogeneous environment where individuals who conform to rules are rewarded and personal identity is diminished. The brick metaphor connotes that students are interchangeable components that are part of a larger system, shaped to fulfil institutional and societal expectations, rather than develop an identity of their own. Therefore, in this case, education becomes the first stage towards alienation. Half a century on, the wall has only risen higher. The schooling system has conditioned children to deem their worth through standardized tests, league tables, a resume, and the perfect career. This has resulted in a paradox where society cannot differentiate between education and the credentials associated with it. This is exactly what Pink Floyd warned us about five decades ago — modern society is alienated to the point where we are shaped into what the system will need long before we discover what we could have been.</p>
+              <p>The child molded by their schooling journey eventually enters the workforce — the one they were trained for over twelve rigorous years. This sense of alienation does not disappear but instead becomes even more pronounced. If school forms our identity, <i>Time</i> shows us the progression of our work, our individuality over time. The song explores how modern society has become alienated to the point where we treat time as a commodity. The song opens with the overpowering noise of clocks ticking, emphasizing how each moment is fleeting in nature and reinforcing the passage of time. As years pass, our routines grow monotonous, and gradually we end up being consumed by the demands of everyday life. Time is no longer lived, but measured, and whatever can be measured can be owned, priced, and sold. Thus, life becomes a ledger where we measure ourselves through productivity; where productive hours are measured through output produced. The most disturbing aspect is that no bureaucratic authority is required to govern this system. There has been an internalization of discipline to the extent that we push ourselves beyond our limits to work harder, often mistaking constant productivity for ambition. This is the clearest form of alienation, as we no longer need someone to control us because we have learned to control ourselves. The song’s message resonates more with us, as that clock sits on our phones and wrists.</p>
+              <p>This leaves the penultimate stage of estrangement and alienation: alienation from the self. <i>Wish You Were Here</i>, Pink Floyd’s elegy to Syd Barrett, exemplifies this through the depiction of a fractured sense of identity. The distinction between the innate self and the socially constructed self begins to collapse. Barrett functions as a symbol of the alienated subject that is consumed by the music industry, commodifying his creativity until he became inseparable from the product. The song’s continued longing illustrates <i>saudade</i> due to the unconscious desire to recover what has been lost, yet its absence remains unresolved. However, the song’s deeper yearning stems from missing a person who is not another human, but the innate self that we gradually lose over time. This thereby creates a divided self, where the identity that is presented to the world becomes detached from the self experienced internally. The bizarre emerges when our identity, something that should be most familiar to us, becomes strangely alien to us. In today’s modern age, this message resonates as we curate and tailor our identity to the audience and gradually begin to mistake the performance for the person. Thus, the more we conform to these societal expectations, the more estranged we are from our true self. Barrett was swallowed whole by an industry which metamorphosed a person into a product; whereas today we internalize the exact process through packaging the innumerable facades of our true self via our work, appearance, and status.</p>
+              <p>Running in tandem, these songs function as anthems for the self formed, consumed, and estranged. Pink Floyd’s implications run far beyond the 1970s; what began as a warning from their own era has become the defining circumstance of ours. The monotonous machinery of alienation has further evolved with our generation in a more persuasive and internalized form than ever before. It begins with the classroom and then slowly creeps up at our workplace, and eventually it shapes inwards until we lose who we are. Moreover, what makes this progression more daunting, haunting, and disorienting is that it no longer requires an external force to act upon us; we carry it within us. The institutions that once controlled us have become the standards by which we judge our worthiness and control ourselves.</p>
+              <p>Ultimately, it can be concluded with absolute certainty that no band or art will ever wield the same influence as Pink Floyd. They did more than just write about alienation; they gave it a medium, an image, and a voice to be represented through. Consequently, their legacy is epitomized through their warnings that have transcended decades to become reflections of our own. The world that they had warned us about is not merely approaching, it has already arrived in swashbuckling fashion.</p>
+            </div>
+          </details>
         </article>
         <article class="sleeve">
           <span class="sl-k">Side B · 01</span>
-          <h3>Oasis</h3>
-          <span class="sl-meta">Manchester · 1991</span>
-          <div class="sl-links"><a href="https://open.spotify.com/search/Oasis" target="_blank" rel="noopener">Spotify ↗</a></div>
-        </article>
-        <article class="sleeve">
-          <span class="sl-k">Side B · 02</span>
           <h3>The Rolling Stones</h3>
           <span class="sl-meta">London · 1962</span>
+          <ol class="tracks" data-tracks="The Rolling Stones" aria-label="Rolling Stones tracks on the record"></ol>
           <div class="sl-links"><a href="https://open.spotify.com/search/The%20Rolling%20Stones" target="_blank" rel="noopener">Spotify ↗</a></div>
         </article>
         <article class="sleeve">
+          <span class="sl-k">Side B · 02</span>
+          <h3>Oasis</h3>
+          <span class="sl-meta">Manchester · 1991</span>
+          <ol class="tracks" data-tracks="Oasis" aria-label="Oasis tracks on the record"></ol>
+          <div class="sl-links"><a href="https://open.spotify.com/search/Oasis" target="_blank" rel="noopener">Spotify ↗</a></div>
+        </article>
+        <article class="sleeve">
           <span class="sl-k">Side B · 03</span>
-          <h3>Joe Cocker</h3>
-          <span class="sl-meta">Sheffield · 1944–2014</span>
-          <div class="sl-links"><a href="https://open.spotify.com/search/Joe%20Cocker" target="_blank" rel="noopener">Spotify ↗</a></div>
+          <h3>Sade</h3>
+          <span class="sl-meta">London · 1982</span>
+          <ol class="tracks" data-tracks="Sade" aria-label="Sade tracks on the record"></ol>
+          <div class="sl-links"><a href="https://open.spotify.com/search/Sade" target="_blank" rel="noopener">Spotify ↗</a></div>
         </article>
       </div>
     </div>
