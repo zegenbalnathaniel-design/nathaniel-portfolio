@@ -744,7 +744,7 @@ html.motion .sec { --draw: 0; }
 .freq-now .fn-ctl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .freq-now button { padding: 6px 10px; border: 1px solid rgba(236,228,210,.35); background: transparent; color: #ECE4D2; font-family: var(--f-mono); font-size: 11px; letter-spacing: .06em; cursor: pointer; transition: border-color .2s, color .2s; }
 .freq-now button:hover { border-color: #E0A030; color: #E0A030; }
-.freq-now a { margin-left: auto; font-family: var(--f-mono); font-size: 11px; letter-spacing: .06em; color: #E0A030; text-decoration: none; border-bottom: 1px solid rgba(224,160,48,.4); }
+.freq-now a { margin-left: 0; font-family: var(--f-mono); font-size: 11px; letter-spacing: .06em; color: #E0A030; text-decoration: none; border-bottom: 1px solid rgba(224,160,48,.4); }
 .fn-embed { border-radius: 12px; }
 
 /* the essay */
@@ -795,3 +795,6 @@ html.motion .sec { --draw: 0; }
   .freq-fig .freq-now .fn-meta { margin-top: 2px; }
   .freq-fig .freq-now .fn-ctl a { margin-left: 0; }
 }
+
+.freq-now .fn-diag { font-family: var(--f-mono); font-size: 9.5px; letter-spacing: .04em; color: rgba(236,228,210,.42); min-height: 1em; }
+.freq-now .fn-primary { border-color: #E0A030; color: #E0A030; background: rgba(224,160,48,.1); }

@@ -11,7 +11,7 @@
 type V3 = [number, number, number];
 
 import { TRACKS, embedUrl, listenUrl } from "./data/music";
-import { prefetchPreviews, previewFor, previewsUnreachable, type Preview } from "./previews";
+import { peekPreview, prefetchPreviews, previewFor, previewsUnreachable, type Preview } from "./previews";
 
 // ---------------------------------------------------------------- isometric drawing
 const S = 15, OX = 302, OY = 108, C = Math.cos(Math.PI / 6), H = 0.5;
@@ -156,8 +156,12 @@ class Spring {
   x = 0; v = 0;
   constructor(public k: number, public c: number, x = 0) { this.x = x; }
   to(target: number, dt: number) {
-    const a = this.k * (target - this.x) - this.c * this.v;
-    this.v += a * dt; this.x += this.v * dt;
+    // sub-stepped, so a long frame is integrated as many short ones: stable, and true to real time
+    const n = Math.max(1, Math.ceil(dt / 0.012)), h = dt / n;
+    for (let i = 0; i < n; i++) {
+      const a = this.k * (target - this.x) - this.c * this.v;
+      this.v += a * h; this.x += this.v * h;
+    }
     return Math.abs(this.v) > 1e-3 || Math.abs(target - this.x) > 1e-3;
   }
   set(x: number) { this.x = x; this.v = 0; }
@@ -181,8 +185,8 @@ export function initFrequencyRoom(reduced: boolean) {
 
   // ---- state
   let rpm45 = false;
-  type DeckState = "idle" | "cueing" | "playing" | "embed" | "error";
-  const deck = { track: -1, t: 0, dur: 30, playing: false, seq: 0, armed: false, state: "idle" as DeckState, msg: "", preview: null as Preview | null };
+  type DeckState = "idle" | "cueing" | "tap" | "playing" | "embed" | "error";
+  const deck = { track: -1, t: 0, dur: 30, playing: false, seq: 0, armed: false, landed: false, watch: 0, state: "idle" as DeckState, msg: "", preview: null as Preview | null };
   // the record itself: a plain audio element playing the clip (kept in the page, silent until a track is cued)
   const player = new Audio();
   player.preload = "auto"; player.volume = 0.92; player.setAttribute("aria-hidden", "true");
@@ -308,44 +312,80 @@ export function initFrequencyRoom(reduced: boolean) {
 
   // ---- the record: a click cues a track; the arm swings in, the needle drops, and the clip plays
   const esc = (t: string) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
-  const SILENT = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=";
-  let unlocked = false;
-  /** Called inside a click: lets the audio element start later, once the clip has arrived (Safari and iOS insist). */
-  function unlockAudio() {
+  const SILENT = "data:audio/wav;base64,UklGRkQDAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YSADAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgA==";
+  let primed = false, unlocked = false;
+  /**
+   * Safari and iOS only allow sound that is started inside a tap, and they keep the audio engine asleep
+   * unless it is woken inside one. So this runs in the tap itself: the audio session is set to "playback"
+   * (so an iPhone's silent switch does not mute it), and the engine is woken with a silent blip.
+   */
+  function primeAudio() {
+    const nav = navigator as Navigator & { audioSession?: { type: string } };
+    try { if (nav.audioSession) nav.audioSession.type = "playback"; } catch { /* older browsers */ }
+    const ac = audio();
+    if (ac && !primed) {
+      primed = true;
+      try { const s = ac.createBufferSource(); s.buffer = ac.createBuffer(1, 1, 22050); s.connect(ac.destination); s.start(0); } catch { primed = false; }
+    }
+  }
+  /** When the clip's address is not known yet at the tap, give the audio element a first, silent play now so it may start the clip later. */
+  function unlockElement() {
     if (unlocked) return;
     unlocked = true;
+    player.muted = true;
     player.src = SILENT;
     player.play().catch(() => { unlocked = false; });
   }
   function cueTrack(i: number) {
     const seq = ++deck.seq;
-    unlockAudio();
-    deck.armed = false;
+    clearTimeout(deck.watch);
+    deck.armed = false; deck.landed = false;
     player.pause();
+    primeAudio();
     deck.track = i; deck.t = 0; deck.dur = 30; deck.playing = true; deck.preview = null; deck.msg = "";
     const t = TRACKS[i];
     deck.state = embedUrl(t) ? "embed" : "cueing";
     say(`${t.title} — ${t.artist}`);
     frRead.textContent = `NOW PLAYING · ${t.title} — ${t.artist}`.toUpperCase();
     frRead.classList.add("tr-on");
+    // the arm takes a moment to come down; the needle lands, and the sound comes up with it
+    setTimeout(() => {
+      if (seq !== deck.seq || !deck.playing) return;
+      deck.landed = true;
+      needleDrop();
+      if (deck.armed) player.muted = !power;
+    }, 650);
+    if (deck.state !== "embed") {
+      const known = peekPreview(t);
+      if (known) startClip(seq, known); // the address is known: start the clip right here, inside the tap
+      else if (known === null) { noPreview(seq); }
+      else {
+        unlockElement();
+        void previewFor(t).then((p) => { if (seq === deck.seq && deck.playing) { if (p) startClip(seq, p); else noPreview(seq); } });
+      }
+    }
     renderNow(); markTracks();
     wake();
-    // the arm takes a moment to come down; the needle lands, then the music begins
-    const landed = new Promise<void>((r) => setTimeout(r, 650));
-    void landed.then(() => { if (seq === deck.seq && deck.playing) needleDrop(); });
-    if (deck.state === "embed") return;
-    void Promise.all([previewFor(t), landed]).then(([p]) => {
-      if (seq !== deck.seq || !deck.playing) return;
-      if (!p) { fail(seq, previewsUnreachable() ? "I couldn’t reach Apple’s preview service from this network — it may be blocked here. Open the song instead:" : "Apple has no preview for this one. Open the song instead:"); return; }
-      deck.preview = p;
-      deck.armed = true;
-      player.muted = !power;
-      player.src = p.url;
-      player.play().catch((err: unknown) => {
-        if ((err as { name?: string })?.name === "AbortError") return;
-        fail(seq, (err as { name?: string })?.name === "NotAllowedError" ? "Your browser wants one more tap before it will play — press the record again." : "That clip wouldn’t start on this browser.");
-      });
+  }
+  const noPreview = (seq: number) => fail(seq, previewsUnreachable() ? "I couldn’t reach Apple’s preview service from this network — it may be blocked here. Open the song instead:" : "Apple has no preview for this one. Open the song instead:");
+  /** Start a clip. It starts muted (always allowed) and is unmuted as the needle lands. */
+  function startClip(seq: number, p: Preview) {
+    deck.preview = p;
+    deck.armed = true;
+    player.muted = deck.landed ? !power : true;
+    player.src = p.url;
+    const started = player.play();
+    started?.catch((err: unknown) => {
+      if (seq !== deck.seq) return;
+      const name = (err as { name?: string })?.name;
+      if (name === "AbortError") return;
+      if (name === "NotAllowedError") { deck.state = "tap"; renderNow(); wake(); return; } // the browser wants a tap on the clip itself
+      fail(seq, "That clip wouldn’t start on this browser. Open the song instead:");
     });
+    clearTimeout(deck.watch);
+    deck.watch = window.setTimeout(() => {
+      if (seq === deck.seq && deck.armed && deck.state === "cueing") fail(seq, "That clip is taking too long to load — the preview service may be slow or blocked here. Open the song instead:");
+    }, 9000);
   }
   function fail(seq: number, msg: string) {
     if (seq !== deck.seq) return;
@@ -356,6 +396,7 @@ export function initFrequencyRoom(reduced: boolean) {
   function stopRecord() {
     if (!deck.playing) return;
     deck.seq++;
+    clearTimeout(deck.watch);
     deck.playing = false; deck.armed = false;
     if (deck.state !== "error") deck.state = "idle";
     player.pause();
@@ -366,7 +407,7 @@ export function initFrequencyRoom(reduced: boolean) {
     wake();
   }
   // the clip's own events: it begins, it runs out (the next track is cued), it fails
-  player.addEventListener("playing", () => { if (!deck.armed || deck.state === "playing") return; deck.state = "playing"; renderNow(); wake(); });
+  player.addEventListener("playing", () => { if (!deck.armed || deck.state === "playing") return; clearTimeout(deck.watch); deck.state = "playing"; renderNow(); wake(); });
   player.addEventListener("loadedmetadata", () => { if (deck.armed && isFinite(player.duration) && player.duration > 0) deck.dur = player.duration; });
   player.addEventListener("ended", () => {
     if (!deck.armed || !deck.playing) return;
@@ -379,17 +420,21 @@ export function initFrequencyRoom(reduced: boolean) {
     const t = deck.track >= 0 ? TRACKS[deck.track] : null;
     if (!t) { nowEl.hidden = true; nowEl.innerHTML = ""; return; }
     const embed = embedUrl(t);
-    const head = deck.state === "playing" ? "Now playing" : deck.state === "cueing" ? "Cueing" : deck.state === "error" ? "Couldn’t play" : deck.state === "embed" ? "Now showing" : "Last played";
+    const head = deck.state === "playing" ? "Now playing" : deck.state === "cueing" ? "Cueing" : deck.state === "tap" ? "One tap to start" : deck.state === "error" ? "Couldn’t play" : deck.state === "embed" ? "Now showing" : "Last played";
     const note = deck.state === "cueing" ? "The needle is down — finding the groove…"
-      : deck.state === "playing" ? "30 seconds of the original recording, via Apple’s preview service."
+      : deck.state === "tap" ? "Your browser wants a tap on the clip itself before it will make a sound."
+      : deck.state === "playing" ? "30 seconds of the original recording, via Apple’s preview service. No sound? Check the volume and the silent switch."
       : deck.state === "error" ? esc(deck.msg) : "";
+    const main = deck.state === "tap" ? `<button type="button" class="fn-primary" data-deck="resume">▶ play clip</button>`
+      : `<button type="button" data-deck="${deck.playing ? "stop" : "play"}">${deck.playing ? "■ stop" : "▶ play"}</button>`;
     const apple = deck.preview?.page ? `<a href="${esc(deck.preview.page)}" target="_blank" rel="noopener">Full song on Apple Music ↗</a>` : "";
     nowEl.hidden = false;
     nowEl.innerHTML = `<div class="fn-head"><span class="fn-k">${head} · ${String(deck.track + 1).padStart(2, "0")} / ${TRACKS.length}</span>
       <b>${esc(t.title)}</b><span class="fn-meta">${esc(t.artist)} · <i>${esc(t.album)}</i>, ${t.year}</span></div>
       ${note ? `<p class="fn-note">${note}</p>` : ""}
       <div class="fn-bar"><i></i></div>
-      <div class="fn-ctl"><button type="button" data-deck="prev" aria-label="Previous track">◀◀</button><button type="button" data-deck="${deck.playing ? "stop" : "play"}">${deck.playing ? "■ stop" : "▶ play"}</button><button type="button" data-deck="next" aria-label="Next track">▶▶</button>
+      <div class="fn-diag" aria-hidden="true"></div>
+      <div class="fn-ctl"><button type="button" data-deck="prev" aria-label="Previous track">◀◀</button>${main}<button type="button" data-deck="next" aria-label="Next track">▶▶</button>
       ${apple}<a href="${listenUrl(t)}" target="_blank" rel="noopener">${t.spotify ? "Open on Spotify ↗" : "Find it on Spotify ↗"}</a></div>
       ${embed ? `<iframe class="fn-embed" src="${embed}" width="100%" height="152" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" title="${esc(t.title)} on Spotify"></iframe>` : ""}`;
   }
@@ -400,6 +445,12 @@ export function initFrequencyRoom(reduced: boolean) {
     if (a === "next") cueTrack((deck.track + 1) % TRACKS.length);
     else if (a === "prev") cueTrack((deck.track - 1 + TRACKS.length) % TRACKS.length);
     else if (a === "stop") stopRecord();
+    else if (a === "resume") {
+      // inside the tap: start the clip that is already loaded
+      primeAudio();
+      player.muted = !power;
+      player.play().catch(() => fail(deck.seq, "Your browser won’t start the sound here. Open the song instead:"));
+    }
     else cueTrack(Math.max(0, deck.track));
   });
   // the sleeves carry their tracklists; a row cues the record
@@ -479,13 +530,14 @@ export function initFrequencyRoom(reduced: boolean) {
   let warmed = false;
   new IntersectionObserver((en) => {
     if (en[0].isIntersecting && !warmed) { warmed = true; prefetchPreviews(TRACKS); }
-  }, { rootMargin: "100% 0px" }).observe(host);
+  }, { rootMargin: "250% 0px" }).observe(host);
   // the music belongs to this chapter: scroll a screen past it and the needle lifts
   const chapter = host.closest("section");
   if (chapter) new IntersectionObserver((en) => { if (!en[0].isIntersecting && deck.playing) stopRecord(); }, { rootMargin: "100% 0px" }).observe(chapter);
 
   function tick(now: number) {
-    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    const rdt = Math.min(0.3, (now - last) / 1000); // real time since the last frame, for things that must keep pace with the music
+    const dt = Math.min(0.05, rdt); last = now;
     let busy = !!drag || voices.size > 0 || tape.playing || tape.rewinding || deck.playing;
 
     // turntable: velocity springs back to the motor's; a flick overshoots and settles
@@ -507,10 +559,15 @@ export function initFrequencyRoom(reduced: boolean) {
         const bar = nowEl?.querySelector<HTMLElement>(".fn-bar i");
         if (bar) bar.style.width = `${Math.min(100, (deck.t / Math.max(1, deck.dur)) * 100).toFixed(1)}%`;
       }
+      const diag = nowEl?.querySelector<HTMLElement>(".fn-diag");
+      if (diag) {
+        const f = (v: number) => `${Math.floor(v / 60)}:${String(Math.floor(v % 60)).padStart(2, "0")}`;
+        diag.textContent = `audio ${player.paused ? "paused" : "running"} · ${f(player.currentTime || 0)} / ${f(deck.dur)} · ${player.muted ? "muted" : "sound on"}${(ctx?.state ?? "") === "suspended" ? " · engine asleep" : ""}`;
+      }
       busy = true;
     }
     const armTarget = !deck.playing ? ARM_REST : deck.state === "playing" ? ARM_OUT + (ARM_IN - ARM_OUT) * Math.min(1, deck.t / Math.max(1, deck.dur)) : ARM_OUT - 3;
-    if (reduced) armS.set(armTarget); else if (armS.to(armTarget, dt)) busy = true;
+    if (reduced) armS.set(armTarget); else if (armS.to(armTarget, rdt)) busy = true;
     armEl.setAttribute("transform", `rotate(${fx(armS.x)})`);
 
     // cassette: tape speed is constant, so each reel turns at speed / its own radius

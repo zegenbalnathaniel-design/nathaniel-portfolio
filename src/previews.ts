@@ -85,9 +85,12 @@ async function search(term: string): Promise<Result[] | null> {
 }
 
 const cache = new Map<string, Promise<Preview | null>>();
+const resolved = new Map<string, Preview | null>();
 const key = (t: Track) => `${t.artist}|${t.title}`;
 // When Apple cannot be reached at all, stop asking for a while rather than fire dozens of doomed requests.
 let downUntil = 0;
+/** The answer for a track if it is already known (a Preview, or null for "Apple has none"); undefined if not yet asked. Lets a tap start the clip at once. */
+export const peekPreview = (t: Track): Preview | null | undefined => resolved.get(key(t));
 /** True if the last attempt could not reach Apple's service at all (as opposed to it having no such song). */
 export const previewsUnreachable = () => Date.now() < downUntil;
 
@@ -100,17 +103,28 @@ export function previewFor(t: Track): Promise<Preview | null> {
       const a = await search(`${t.title} ${t.artist}`);
       if (a === null) { downUntil = Date.now() + 30000; cache.delete(key(t)); return null; }
       const first = pick(a, t);
-      if (first) return first;
+      if (first) { resolved.set(key(t), first); return first; }
       const b = await search(`${t.artist} ${t.album}`);
       if (b === null) { downUntil = Date.now() + 30000; cache.delete(key(t)); return null; }
-      return pick(b, t);
+      const second = pick(b, t);
+      resolved.set(key(t), second);
+      return second;
     })().catch(() => null);
     cache.set(key(t), p);
   }
   return p;
 }
 
-/** Warm the cache a little at a time, so a click finds its clip ready. */
-export function prefetchPreviews(tracks: Track[]) {
-  tracks.forEach((t, i) => setTimeout(() => { if (!previewsUnreachable()) void previewFor(t); }, i * 350));
+let warming = false;
+/** Warm the cache one lookup at a time (never a burst, and it stops the moment Apple proves unreachable), so a tap finds its clip ready. */
+export async function prefetchPreviews(tracks: Track[]) {
+  if (warming) return;
+  warming = true;
+  try {
+    for (const t of tracks) {
+      if (previewsUnreachable()) break;
+      await previewFor(t);
+      await new Promise((r) => setTimeout(r, 120));
+    }
+  } finally { warming = false; }
 }
