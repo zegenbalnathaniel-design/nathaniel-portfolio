@@ -11,6 +11,7 @@
 type V3 = [number, number, number];
 
 import { TRACKS, embedUrl, listenUrl } from "./data/music";
+import { prefetchPreviews, previewFor, previewsUnreachable, type Preview } from "./previews";
 
 // ---------------------------------------------------------------- isometric drawing
 const S = 15, OX = 302, OY = 108, C = Math.cos(Math.PI / 6), H = 0.5;
@@ -44,7 +45,6 @@ const ftext = (x: number, y: number, z: number, t: string, size = 0.55, cls = "t
 // ---------------------------------------------------------------- the instrument's parts
 // the tonearm's angles in the platter plane: on its rest, on the outer groove, on the inner groove
 const ARM_REST = 84, ARM_OUT = 101, ARM_IN = 124;
-const TRACK_LEN = 48; // seconds a record side gives each track before the arm walks on
 const WHITE = [60, 62, 64, 65, 67, 69, 71, 72], BLACK: Record<number, number> = { 0: 61, 1: 63, 3: 66, 4: 68, 5: 70 };
 const NAMES = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
 const noteName = (m: number) => `${NAMES[m % 12]}${Math.floor(m / 12) - 1}`;
@@ -181,7 +181,12 @@ export function initFrequencyRoom(reduced: boolean) {
 
   // ---- state
   let rpm45 = false;
-  const deck = { track: -1, t: 0, playing: false, dropAt: 0 };
+  type DeckState = "idle" | "cueing" | "playing" | "embed" | "error";
+  const deck = { track: -1, t: 0, dur: 30, playing: false, seq: 0, armed: false, state: "idle" as DeckState, msg: "", preview: null as Preview | null };
+  // the record itself: a plain audio element playing the clip (kept in the page, silent until a track is cued)
+  const player = new Audio();
+  player.preload = "auto"; player.volume = 0.92; player.setAttribute("aria-hidden", "true");
+  host.append(player);
   const armS = new Spring(38, 9, ARM_REST);
   const nowEl = document.getElementById("freqNow");
   const platterW = new Spring(6, 3, 0); // angular velocity follows the motor; a flick pushes it
@@ -260,7 +265,7 @@ export function initFrequencyRoom(reduced: boolean) {
     else if (act === "btn") { transport(t.dataset.btn!); }
     else if (act === "speed") { rpm45 = !rpm45; $("ttLever").setAttribute("d", rpm45 ? "M0 0 L0.45 -0.45" : "M0 0 L-0.45 -0.45"); say(rpm45 ? "45 rpm" : "33⅓ rpm"); }
     else if (act === "wave") { wave = (wave + 1) % 3; $("syWave").setAttribute("y", fx(5.95 + wave * 0.65)); for (const v of voices.values()) if (v.osc) v.osc.type = WAVES[wave]; say(`${WAVE_LABEL[wave].toLowerCase()} wave`); }
-    else if (act === "power") { power = !power; $("syPower").setAttribute("x", power ? "43.75" : "44.35"); $("syLed").classList.toggle("on", power); if (!power) { for (const n of [...voices.keys()]) noteOff(n); surfaceGain?.gain.setTargetAtTime(0, ctx?.currentTime ?? 0, 0.1); } else if (deck.playing) surface(true); say(power ? "sound on" : "sound off"); }
+    else if (act === "power") { power = !power; $("syPower").setAttribute("x", power ? "43.75" : "44.35"); $("syLed").classList.toggle("on", power); if (!power) for (const n of [...voices.keys()]) noteOff(n); player.muted = !power; say(power ? "sound on" : "sound off"); }
     if (drag) svg.setPointerCapture(e.pointerId);
     wake();
   });
@@ -301,38 +306,91 @@ export function initFrequencyRoom(reduced: boolean) {
   svg.addEventListener("pointercancel", () => release());
   svg.addEventListener("lostpointercapture", () => release());
 
-  // ---- the record: a click cues the next track; the arm swings in, the needle drops, the side plays on
-  const esc = (t: string) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+  // ---- the record: a click cues a track; the arm swings in, the needle drops, and the clip plays
+  const esc = (t: string) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+  const SILENT = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=";
+  let unlocked = false;
+  /** Called inside a click: lets the audio element start later, once the clip has arrived (Safari and iOS insist). */
+  function unlockAudio() {
+    if (unlocked) return;
+    unlocked = true;
+    player.src = SILENT;
+    player.play().catch(() => { unlocked = false; });
+  }
   function cueTrack(i: number) {
-    deck.track = i; deck.t = 0; deck.playing = true; deck.dropAt = performance.now() + 650;
+    const seq = ++deck.seq;
+    unlockAudio();
+    deck.armed = false;
+    player.pause();
+    deck.track = i; deck.t = 0; deck.dur = 30; deck.playing = true; deck.preview = null; deck.msg = "";
     const t = TRACKS[i];
+    deck.state = embedUrl(t) ? "embed" : "cueing";
     say(`${t.title} — ${t.artist}`);
     frRead.textContent = `NOW PLAYING · ${t.title} — ${t.artist}`.toUpperCase();
     frRead.classList.add("tr-on");
     renderNow(); markTracks();
-    surface(true);
     wake();
+    // the arm takes a moment to come down; the needle lands, then the music begins
+    const landed = new Promise<void>((r) => setTimeout(r, 650));
+    void landed.then(() => { if (seq === deck.seq && deck.playing) needleDrop(); });
+    if (deck.state === "embed") return;
+    void Promise.all([previewFor(t), landed]).then(([p]) => {
+      if (seq !== deck.seq || !deck.playing) return;
+      if (!p) { fail(seq, previewsUnreachable() ? "I couldn’t reach Apple’s preview service from this network — it may be blocked here. Open the song instead:" : "Apple has no preview for this one. Open the song instead:"); return; }
+      deck.preview = p;
+      deck.armed = true;
+      player.muted = !power;
+      player.src = p.url;
+      player.play().catch((err: unknown) => {
+        if ((err as { name?: string })?.name === "AbortError") return;
+        fail(seq, (err as { name?: string })?.name === "NotAllowedError" ? "Your browser wants one more tap before it will play — press the record again." : "That clip wouldn’t start on this browser.");
+      });
+    });
+  }
+  function fail(seq: number, msg: string) {
+    if (seq !== deck.seq) return;
+    deck.state = "error"; deck.msg = msg;
+    stopRecord();
+    say("couldn’t play that one");
   }
   function stopRecord() {
     if (!deck.playing) return;
-    deck.playing = false;
+    deck.seq++;
+    deck.playing = false; deck.armed = false;
+    if (deck.state !== "error") deck.state = "idle";
+    player.pause();
     say("needle lifted");
     frRead.textContent = "AT REST";
     frRead.classList.remove("tr-on");
     renderNow(); markTracks();
-    surface(false);
     wake();
   }
+  // the clip's own events: it begins, it runs out (the next track is cued), it fails
+  player.addEventListener("playing", () => { if (!deck.armed || deck.state === "playing") return; deck.state = "playing"; renderNow(); wake(); });
+  player.addEventListener("loadedmetadata", () => { if (deck.armed && isFinite(player.duration) && player.duration > 0) deck.dur = player.duration; });
+  player.addEventListener("ended", () => {
+    if (!deck.armed || !deck.playing) return;
+    if (deck.track < TRACKS.length - 1) cueTrack(deck.track + 1);
+    else { stopRecord(); say("end of side"); }
+  });
+  player.addEventListener("error", () => { if (deck.armed) fail(deck.seq, "That clip wouldn’t load — Apple’s preview service may be blocked on this network."); });
   function renderNow() {
     if (!nowEl) return;
     const t = deck.track >= 0 ? TRACKS[deck.track] : null;
     if (!t) { nowEl.hidden = true; nowEl.innerHTML = ""; return; }
     const embed = embedUrl(t);
+    const head = deck.state === "playing" ? "Now playing" : deck.state === "cueing" ? "Cueing" : deck.state === "error" ? "Couldn’t play" : deck.state === "embed" ? "Now showing" : "Last played";
+    const note = deck.state === "cueing" ? "The needle is down — finding the groove…"
+      : deck.state === "playing" ? "30 seconds of the original recording, via Apple’s preview service."
+      : deck.state === "error" ? esc(deck.msg) : "";
+    const apple = deck.preview?.page ? `<a href="${esc(deck.preview.page)}" target="_blank" rel="noopener">Full song on Apple Music ↗</a>` : "";
     nowEl.hidden = false;
-    nowEl.innerHTML = `<div class="fn-head"><span class="fn-k">${deck.playing ? "Now playing" : "Last played"} · ${String(deck.track + 1).padStart(2, "0")} / ${TRACKS.length}</span>
+    nowEl.innerHTML = `<div class="fn-head"><span class="fn-k">${head} · ${String(deck.track + 1).padStart(2, "0")} / ${TRACKS.length}</span>
       <b>${esc(t.title)}</b><span class="fn-meta">${esc(t.artist)} · <i>${esc(t.album)}</i>, ${t.year}</span></div>
+      ${note ? `<p class="fn-note">${note}</p>` : ""}
+      <div class="fn-bar"><i></i></div>
       <div class="fn-ctl"><button type="button" data-deck="prev" aria-label="Previous track">◀◀</button><button type="button" data-deck="${deck.playing ? "stop" : "play"}">${deck.playing ? "■ stop" : "▶ play"}</button><button type="button" data-deck="next" aria-label="Next track">▶▶</button>
-      <a href="${listenUrl(t)}" target="_blank" rel="noopener">${t.spotify ? "Open on Spotify ↗" : "Find it on Spotify ↗"}</a></div>
+      ${apple}<a href="${listenUrl(t)}" target="_blank" rel="noopener">${t.spotify ? "Open on Spotify ↗" : "Find it on Spotify ↗"}</a></div>
       ${embed ? `<iframe class="fn-embed" src="${embed}" width="100%" height="152" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" title="${esc(t.title)} on Spotify"></iframe>` : ""}`;
   }
   nowEl?.addEventListener("click", (e) => {
@@ -361,36 +419,36 @@ export function initFrequencyRoom(reduced: boolean) {
     host.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "center" });
   });
 
-  // the sound of a record: the needle drop, and the faint surface noise under a side
-  let surfaceGain: GainNode | null = null;
+  // the sound of a record: the needle landing, and the odd pop of dust under the music
   const noiseBuffer = (ac: AudioContext, secs: number) => {
     const b = ac.createBuffer(1, Math.floor(ac.sampleRate * secs), ac.sampleRate);
     const d = b.getChannelData(0);
     for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
     return b;
   };
-  function surface(on: boolean) {
+  let popBuf: AudioBuffer | null = null, nextPop = 0;
+  function pop() {
     const ac = audio();
     if (!ac || !master) return;
-    if (!surfaceGain) {
-      const src = ac.createBufferSource(); src.buffer = noiseBuffer(ac, 2.5); src.loop = true;
-      const lp = ac.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 2400;
-      surfaceGain = ac.createGain(); surfaceGain.gain.value = 0;
-      src.connect(lp); lp.connect(surfaceGain); surfaceGain.connect(master); src.start();
+    if (!popBuf) {
+      popBuf = ac.createBuffer(1, Math.floor(ac.sampleRate * 0.03), ac.sampleRate);
+      const d = popBuf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (d.length * 0.16));
     }
-    surfaceGain.gain.cancelScheduledValues(ac.currentTime);
-    surfaceGain.gain.setTargetAtTime(on ? 0.05 : 0, ac.currentTime, 0.25);
+    const src = ac.createBufferSource(); src.buffer = popBuf;
+    const g = ac.createGain(); g.gain.value = 0.05 + Math.random() * 0.12;
+    src.connect(g); g.connect(master); src.start();
   }
   function needleDrop() {
     const ac = audio();
     if (!ac || !master) return;
     const burst = ac.createBufferSource(); burst.buffer = noiseBuffer(ac, 0.3);
     const bp = ac.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = 1900; bp.Q.value = 0.6;
-    const g = ac.createGain(); g.gain.setValueAtTime(0.5, ac.currentTime); g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.3);
-    burst.connect(bp); bp.connect(g); g.connect(master); burst.start(); burst.stop(ac.currentTime + 0.32);
+    const g = ac.createGain(); g.gain.setValueAtTime(0.4, ac.currentTime); g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.22);
+    burst.connect(bp); bp.connect(g); g.connect(master); burst.start(); burst.stop(ac.currentTime + 0.25);
     const thump = ac.createOscillator(); thump.frequency.value = 52;
-    const tg = ac.createGain(); tg.gain.setValueAtTime(0.6, ac.currentTime); tg.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.16);
-    thump.connect(tg); tg.connect(master); thump.start(); thump.stop(ac.currentTime + 0.18);
+    const tg = ac.createGain(); tg.gain.setValueAtTime(0.5, ac.currentTime); tg.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.14);
+    thump.connect(tg); tg.connect(master); thump.start(); thump.stop(ac.currentTime + 0.16);
   }
 
   // keyboard: the figure is a group with focus; letters play, like on the panel
@@ -418,6 +476,13 @@ export function initFrequencyRoom(reduced: boolean) {
   let inView = false, running = false, last = 0;
   new IntersectionObserver((en) => { inView = en[0].isIntersecting; if (inView) wake(); }, { rootMargin: "15% 0px" }).observe(host);
   function wake() { if (!running && inView) { running = true; last = performance.now(); requestAnimationFrame(tick); } }
+  let warmed = false;
+  new IntersectionObserver((en) => {
+    if (en[0].isIntersecting && !warmed) { warmed = true; prefetchPreviews(TRACKS); }
+  }, { rootMargin: "100% 0px" }).observe(host);
+  // the music belongs to this chapter: scroll a screen past it and the needle lifts
+  const chapter = host.closest("section");
+  if (chapter) new IntersectionObserver((en) => { if (!en[0].isIntersecting && deck.playing) stopRecord(); }, { rootMargin: "100% 0px" }).observe(chapter);
 
   function tick(now: number) {
     const dt = Math.min(0.05, (now - last) / 1000); last = now;
@@ -430,20 +495,21 @@ export function initFrequencyRoom(reduced: boolean) {
     }
     platterEl.setAttribute("transform", `rotate(${((platterA * 180) / Math.PI).toFixed(2)})`);
 
-    // the record: the arm walks from the outer groove to the inner one over a track, then on to the next
+    // the record: while a clip plays, the arm follows its clock from the outer groove to the inner one
     let music = 0;
     if (deck.playing) {
-      if (deck.dropAt && now >= deck.dropAt) { deck.dropAt = 0; needleDrop(); }
-      deck.t += dt;
-      if (deck.t >= TRACK_LEN) {
-        if (deck.track < TRACKS.length - 1) cueTrack(deck.track + 1);
-        else { stopRecord(); say("end of side"); }
+      const live = deck.state === "playing" && !player.paused;
+      if (live) {
+        deck.t = player.currentTime;
+        const tt = now / 1000;
+        music = Math.max(0, Math.min(1, 0.42 + 0.22 * Math.sin(tt * 1.7) + 0.18 * Math.sin(tt * 4.3 + 1) + 0.12 * Math.sin(tt * 9.1 + 2)));
+        if (!player.muted && now >= nextPop) { pop(); nextPop = now + 160 + Math.random() * 1100; }
+        const bar = nowEl?.querySelector<HTMLElement>(".fn-bar i");
+        if (bar) bar.style.width = `${Math.min(100, (deck.t / Math.max(1, deck.dur)) * 100).toFixed(1)}%`;
       }
-      const tt = now / 1000;
-      music = Math.max(0, Math.min(1, 0.42 + 0.22 * Math.sin(tt * 1.7) + 0.18 * Math.sin(tt * 4.3 + 1) + 0.12 * Math.sin(tt * 9.1 + 2))) * (deck.dropAt ? 0 : 1);
       busy = true;
     }
-    const armTarget = deck.playing ? (deck.dropAt ? ARM_OUT - 3 : ARM_OUT + (ARM_IN - ARM_OUT) * Math.min(1, deck.t / TRACK_LEN)) : ARM_REST;
+    const armTarget = !deck.playing ? ARM_REST : deck.state === "playing" ? ARM_OUT + (ARM_IN - ARM_OUT) * Math.min(1, deck.t / Math.max(1, deck.dur)) : ARM_OUT - 3;
     if (reduced) armS.set(armTarget); else if (armS.to(armTarget, dt)) busy = true;
     armEl.setAttribute("transform", `rotate(${fx(armS.x)})`);
 

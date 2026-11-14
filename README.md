@@ -28,6 +28,7 @@ Deploys on Vercel as a static Vite site (`vercel.json`).
 | Camera rail, hover tips, click-to-travel, bounce, clickable globe | `src/world/index.ts` |
 | The Cinematic Mind: the Memory Projector, film strip, archive | `src/cinema.ts`, `src/data/films.ts` |
 | The Frequency Room: turntable, tape deck, playable synth, VU meters, scope | `src/freqroom.ts` |
+| The record's audio: 30-second previews of each song from Apple's public iTunes Search API | `src/previews.ts`, `src/data/music.ts` |
 | Hairline figures (`@lucasmarkes/hairline`) drawn on the page | `src/figures.ts` |
 | Fig. 01, Rate Lab, fiscal and tax panels, the 90-second brief | `src/interactives.ts` |
 | Reveals, cursor | `src/motion.ts` |

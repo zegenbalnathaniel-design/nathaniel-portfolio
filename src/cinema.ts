@@ -124,6 +124,13 @@ export function initCinema(reduced: boolean) {
     </button>`).join("");
 
   // ---- projecting a film
+  const fillText = (show: Film | null) => {
+    if (!show) { psK.textContent = "No film selected"; psTitle.textContent = "Hover a frame"; psMeta.textContent = "or click a card below"; psLesson.textContent = ""; return; }
+    psK.textContent = show.core ? "Now showing · one that shaped me" : "Now showing";
+    psTitle.textContent = show.title;
+    psMeta.textContent = `${show.year} · dir. ${show.director}`;
+    psLesson.textContent = show.lesson;
+  };
   let shown: Film | null = null;
   let selected: Film | null = null;
   const project = (f: Film | null, sticky = false) => {
@@ -136,13 +143,10 @@ export function initCinema(reduced: boolean) {
     void screen.offsetWidth; // restart the flicker
     screen.classList.add("flick");
     screen.style.removeProperty("--still");
-    if (!show) { psK.textContent = "No film selected"; psTitle.textContent = "Hover a frame"; psMeta.textContent = "or click a card below"; psLesson.textContent = ""; return; }
+    fillText(show);
+    if (!show) return;
     const still = stillOf(show);
     if (still) screen.style.setProperty("--still", `url("${still}")`);
-    psK.textContent = show.core ? "Now showing · one that shaped me" : "Now showing";
-    psTitle.textContent = show.title;
-    psMeta.textContent = `${show.year} · dir. ${show.director}`;
-    psLesson.textContent = show.lesson;
     strip.querySelectorAll<HTMLElement>(".frame").forEach((b) => b.classList.toggle("sel", b.dataset.film === show.id));
     archive.querySelectorAll<HTMLElement>(".card").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.film === show.id)));
   };
@@ -158,13 +162,29 @@ export function initCinema(reduced: boolean) {
   };
   project(null);
 
+  // On a phone the screen's text sits in the page flow. Reserve room for the longest lesson, so that
+  // projecting a film never moves the strip out from under a finger.
+  let fitTimer = 0;
+  const fitScreen = () => {
+    screen.style.minHeight = "";
+    if (!matchMedia("(max-width: 640px)").matches) return;
+    let max = 0;
+    for (const f of FILMS) { fillText(f); max = Math.max(max, screen.offsetHeight); }
+    fillText(shown);
+    screen.style.minHeight = `${Math.ceil(max)}px`;
+  };
+  fitScreen();
+  document.fonts?.ready.then(fitScreen);
+  addEventListener("resize", () => { clearTimeout(fitTimer); fitTimer = window.setTimeout(fitScreen, 150); });
+
   const byId = (el: EventTarget | null) => {
     const b = (el as HTMLElement | null)?.closest<HTMLElement>("[data-film]");
     return b ? FILMS.find((f) => f.id === b.dataset.film) ?? null : null;
   };
   for (const el of [strip, archive]) {
-    el.addEventListener("pointerover", (e) => { const f = byId(e.target); if (f) project(f); });
-    el.addEventListener("pointerout", (e) => { if (byId(e.target)) project(null); });
+    // a finger has no hover: touch projects on the tap itself, not on touch-down
+    el.addEventListener("pointerover", (e) => { if (e.pointerType === "touch") return; const f = byId(e.target); if (f) project(f); });
+    el.addEventListener("pointerout", (e) => { if (e.pointerType === "touch") return; if (byId(e.target)) project(null); });
     el.addEventListener("focusin", (e) => { const f = byId(e.target); if (f) project(f); });
     el.addEventListener("focusout", () => project(null));
     el.addEventListener("click", (e) => { const f = byId(e.target); if (f) choose(f); });

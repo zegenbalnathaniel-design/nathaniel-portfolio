@@ -569,7 +569,7 @@ html.motion .sec { --draw: 0; }
 .proj-screen .ps-k { font-family: var(--f-mono); font-size: clamp(8px, 1.1cqw, 11px); letter-spacing: .16em; text-transform: uppercase; color: var(--accent-ink); }
 .proj-screen b { font-family: var(--f-display); font-weight: 400; font-size: clamp(14px, 3.2cqw, 34px); line-height: 1.02; letter-spacing: -.01em; text-wrap: balance; }
 .proj-screen .ps-meta { font-family: var(--f-mono); font-size: clamp(8px, 1.15cqw, 12px); letter-spacing: .06em; color: var(--ink-2); }
-.proj-screen p { font-family: var(--f-display); font-style: italic; font-size: clamp(10px, 1.45cqw, 15.5px); line-height: 1.28; color: var(--ink-2); margin-top: .4cqw; display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
+.proj-screen p { font-family: var(--f-display); font-style: italic; font-size: clamp(9.5px, 1.3cqw, 14.5px); line-height: 1.26; color: var(--ink-2); margin-top: .4cqw; }
 .proj-screen p:empty { display: none; }
 .proj-screen.flick b { animation: screen-flick .5s steps(1) 1; }
 @keyframes screen-flick { 0% { opacity: 0; } 35% { opacity: 1; } 50% { opacity: .25; } 65% { opacity: 1; } }
@@ -772,7 +772,7 @@ html.motion .sec { --draw: 0; }
   /* on a phone the drawing keeps its shape and the screen's text drops beneath it, like a subtitle card */
   .projector { aspect-ratio: auto; }
   .proj-svg { position: relative; display: block; aspect-ratio: 1000 / 400; height: auto; }
-  .proj-screen { position: static; width: auto; height: auto; min-height: 118px; padding: 14px 16px 16px; text-align: left; border-top: 1px solid var(--rule); gap: 4px; }
+  .proj-screen { position: static; width: auto; height: auto; min-height: 118px; padding: 14px 16px 16px; text-align: left; border-top: 1px solid var(--rule); gap: 4px; align-content: start; }
   .proj-screen .ps-k { font-size: 9px; }
   .proj-screen b { font-size: 22px; }
   .proj-screen .ps-meta { font-size: 10.5px; }
@@ -781,4 +781,17 @@ html.motion .sec { --draw: 0; }
   .archive { grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 8px; }
   .review { grid-template-columns: 1fr; }
   .proj-stats b { font-size: 1.6rem; }
+}
+
+/* now playing: the clip's progress and its status line */
+.freq-now .fn-note { margin: 0; font-family: var(--f-mono); font-size: 11px; line-height: 1.5; letter-spacing: .03em; color: rgba(236,228,210,.7); max-width: 62ch; }
+.freq-now .fn-bar { height: 2px; background: rgba(236,228,210,.16); }
+.freq-now .fn-bar i { display: block; height: 100%; width: 0; background: #E0A030; }
+
+/* on a wide screen the now-playing card sits on the plate itself, in its empty lower-left corner, so it is seen where the record is clicked */
+@media (min-width: 1000px) {
+  .freq-fig .freq-now { position: absolute; left: 16px; bottom: 42px; width: min(400px, 38%); margin: 0; z-index: 2; padding: 12px 14px 14px; gap: 8px; background: rgba(27,25,23,.95); }
+  .freq-fig .freq-now b { font-size: 1.5rem; margin-top: 2px; }
+  .freq-fig .freq-now .fn-meta { margin-top: 2px; }
+  .freq-fig .freq-now .fn-ctl a { margin-left: 0; }
 }
